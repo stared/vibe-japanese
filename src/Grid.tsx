@@ -13,6 +13,7 @@ const TABLES = [
 
 export function Grid({ store }: { store: Store }) {
   const [sel, setSel] = useState<string | null>(null)
+  const [hover, setHover] = useState<string | null>(null)
   const learned = WORDS.filter(w => store.cards[w.kana])
   const seen = new Set(learned.flatMap(w => toks(w).map(t => t.kana)))
 
@@ -22,7 +23,7 @@ export function Grid({ store }: { store: Store }) {
     const weak = st && st.ema < 0.6
     return (
       <td key={j} className={(seen.has(k) ? 'known' : 'locked') + (weak ? ' weak' : '') + (sel === k ? ' sel' : '')}
-        onClick={() => setSel(sel === k ? null : k)}>
+        onClick={() => setSel(sel === k ? null : k)} onMouseEnter={() => setHover(k)} onMouseLeave={() => setHover(null)}>
         {k}
       </td>
     )
@@ -41,7 +42,7 @@ export function Grid({ store }: { store: Store }) {
           </section>
         ))}
       </div>
-      <aside className="detail">{sel && <Detail k={sel} store={store} />}</aside>
+      <aside className="detail">{(hover ?? sel) && <Detail k={(hover ?? sel)!} store={store} />}</aside>
     </main>
   )
 }
