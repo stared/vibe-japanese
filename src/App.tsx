@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BASE, match, misread, normalize, type Tok } from './kana'
+import { BASE, align, match, misread, normalize, type Seg, type Tok } from './kana'
 import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, NEW_CHARS, toks, type Word } from './words'
 import { answer, load, newCard, save, MIN, DAY, type Store } from './srs'
@@ -37,7 +37,7 @@ export default function App() {
   )
 }
 
-type Result = { ok: boolean; given: string; blame: number | null; confused: string | null; before: Store }
+type Result = { ok: boolean; segs: Seg[] | null; before: Store }
 type Phase =
   | { kind: 'kana'; word: Word; chars: string[]; i: number }
   | { kind: 'quiz'; word: Word; first: boolean }
@@ -89,14 +89,14 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   const submit = (w: Word, first: boolean) => {
     const t = toks(w)
     const given = normalize(input)
-    const m = given ? match(t, given) : { ok: false, blame: null, at: 0 }
-    const confused = m.blame !== null ? misread(t[m.blame], given.slice(m.at)) : null
+    const segs = given ? align(t, given) : null
+    const wrong = segs ? segs.flatMap((sg, i) => (sg.ok ? [] : [i])) : t.map((_, i) => i)
     let before = storeRef.current
     if (!before.cards[w.kana]) before = { ...before, cards: { ...before.cards, [w.kana]: newCard(w.kana, Date.now()) } }
-    commit(answer(before, w.kana, t, m.ok, m.blame, Date.now()))
+    commit(answer(before, w.kana, t, wrong, Date.now()))
     last.current = w.kana
     setInput('')
-    setPhase({ kind: 'reveal', word: w, first, ok: m.ok, given: input.trim(), blame: m.blame, confused, before })
+    setPhase({ kind: 'reveal', word: w, first, ok: wrong.length === 0, segs, before })
     speak(w.kana)
   }
 
@@ -119,7 +119,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         e.preventDefault()
         next()
       } else if (phase.kind === 'reveal' && !phase.ok && e.key === 'Escape') {
-        commit(answer(phase.before, phase.word.kana, toks(phase.word), true, null, Date.now()))
+        commit(answer(phase.before, phase.word.kana, toks(phase.word), [], Date.now()))
         next()
       }
     }
@@ -146,7 +146,6 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     }
     return (
       <main className="study">
-        <div className="label">new kana</div>
         <div className="word">{k}</div>
         {reading && <div className="reading">{reading}</div>}
         {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
@@ -162,29 +161,42 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   if (phase.kind === 'quiz') {
     return (
       <main className="study">
-        <div className="label">{phase.first ? 'new word' : ' '}</div>
         <KanaWord toks={t} />
         <AnswerInput value={input} onChange={setInput} onEnter={() => submit(w, phase.first)} />
       </main>
     )
   }
 
-  const { ok, blame, confused, first } = phase
+  const { ok, segs, first } = phase
   const retype = () => {
     if (match(t, normalize(input)).ok) next()
     else setShake(n => n + 1)
   }
+  const confusions = segs ? t.flatMap((x, i) => {
+    const c = segs[i].ok ? null : misread(x, segs[i].text)
+    return c ? [[x, c] as const] : []
+  }) : []
   return (
     <main className="study">
-      <div className={'label ' + (ok ? 'good' : 'bad')}>{ok ? 'correct' : phase.given ? `not “${phase.given}”` : 'reading'}</div>
-      <KanaWord toks={t} readings blame={blame} onClick={() => speak(w.kana)} />
-      {confused && blame !== null && (
-        <div className="confusion">
-          <span className="jp">{t[blame].kana}</span> {t[blame].pl}
-          <span className="vs">not</span>
-          <span className="jp">{confused}</span> {BASE[confused][0]}
+      <div className="word" onClick={() => speak(w.kana)}>
+        {t.map((x, i) => {
+          const sg = segs?.[i]
+          return (
+            <span key={i} className={'tok' + (x.space ? ' gap' : '') + (sg && !sg.ok ? ' bad' : '')}>
+              <span>{x.gem ? 'っ' : ''}{x.kana}</span>
+              {sg && <span className={'typed ' + (sg.ok ? 'good' : 'bad')}>{sg.text || '·'}</span>}
+              {(!sg || !sg.ok) && <span className="r">{x.pl}</span>}
+            </span>
+          )
+        })}
+      </div>
+      {confusions.map(([x, c]) => (
+        <div key={x.kana} className="confusion">
+          <span className="jp">{x.kana}</span> {x.pl}
+          <span className="vs">≠</span>
+          <span className="jp">{c}</span> {BASE[c][0]}
         </div>
-      )}
+      ))}
       <div className="meaning">
         {w.kanji && <span className="kanji">{w.kanji}</span>} {w.en}
       </div>
@@ -192,11 +204,11 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
       {ok
         ? (first && w.note) && <button className="next" onClick={next}>next</button>
         : <>
-            <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} placeholder="type it" />
+            <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} />
             <button className="hint" onClick={() => {
-              commit(answer(phase.before, w.kana, t, true, null, Date.now()))
+              commit(answer(phase.before, w.kana, t, [], Date.now()))
               next()
-            }}>it was a typo (esc)</button>
+            }}>typo</button>
           </>}
     </main>
   )
@@ -217,13 +229,12 @@ function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { value: 
   )
 }
 
-function KanaWord({ toks: t, readings, blame, onClick }: { toks: Tok[]; readings?: boolean; blame?: number | null; onClick?: () => void }) {
+function KanaWord({ toks: t }: { toks: Tok[] }) {
   return (
-    <div className="word" onClick={onClick}>
+    <div className="word">
       {t.map((x, i) => (
-        <span key={i} className={'tok' + (i === blame ? ' bad' : '') + (x.space ? ' gap' : '')}>
+        <span key={i} className={'tok' + (x.space ? ' gap' : '')}>
           <span>{x.gem ? 'っ' : ''}{x.kana}</span>
-          {readings && <span className="r">{x.pl}</span>}
         </span>
       ))}
     </div>

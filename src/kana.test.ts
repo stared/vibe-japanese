@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { display, match, normalize, tokenize, BASE } from './kana'
+import { align, display, match, normalize, tokenize, BASE } from './kana'
 import { WORDS, NEW_CHARS, toks } from './words'
 
 test('every word accepts its own Polish and Hepburn reading', () => {
@@ -30,4 +30,14 @@ test('curriculum covers all base and voiced kana', () => {
   const missing = Object.keys(BASE).filter(k => !all.has(k))
   expect(missing).toEqual([])
   for (const w of WORDS) expect(NEW_CHARS.get(w.kana)!.length, w.kana).toBeLessThanOrEqual(3)
+})
+
+test('align marks only the misread kana', () => {
+  const a = (k: string, s: string, read?: Record<number, string[]>) => align(tokenize(k, read), s).map(x => (x.ok ? '+' : '-') + x.text).join(' ')
+  expect(a('ねこ', 'reko')).toBe('-re +ko')
+  expect(a('さくら', 'sakira')).toBe('+sa -ki +ra')
+  expect(a('とうきょう', 'tokio')).toBe('+to + +kio +')
+  expect(a('こんにちは', 'konnichiwa', { 4: ['wa', 'wa', 'ha'] })).toBe('+ko +n +ni +chi +wa')
+  expect(a('やま', 'ja')).toBe('+ja -')
+  expect(a('やま', 'jamaa')).toBe('+ja -maa')
 })

@@ -37,26 +37,25 @@ export function schedule(c: Card, ok: boolean, now: number): Card {
   return { ...c, ivl, reps: c.reps + 1, due: now + ivl * DAY - 4 * 3600_000 }
 }
 
-/** Kana before the blamed one were read right; the blamed one wrong. */
-function updateKana(kana: Store['kana'], toks: Tok[], ok: boolean, blame: number | null) {
+function updateKana(kana: Store['kana'], toks: Tok[], wrong: number[]) {
   const out = { ...kana }
   const bump = (k: string, hit: boolean) => {
     const s = out[k] ?? { n: 0, ema: 0.5 }
     out[k] = { n: s.n + 1, ema: s.ema * 0.7 + (hit ? 0.3 : 0) }
   }
-  const upto = ok ? toks.length : (blame ?? -1) + 1
-  toks.slice(0, upto).forEach((t, i) => {
-    const hit = ok || i !== blame
+  toks.forEach((t, i) => {
+    const hit = !wrong.includes(i)
     bump(t.kana, hit)
     if (t.gem) bump('っ', hit)
   })
   return out
 }
 
-export function answer(s: Store, id: string, toks: Tok[], ok: boolean, blame: number | null, now: number): Store {
+export function answer(s: Store, id: string, toks: Tok[], wrong: number[], now: number): Store {
+  const ok = wrong.length === 0
   return {
     cards: { ...s.cards, [id]: schedule(s.cards[id], ok, now) },
-    kana: updateKana(s.kana, toks, ok, blame),
+    kana: updateKana(s.kana, toks, wrong),
     log: [...s.log, { t: now, id, ok }],
   }
 }

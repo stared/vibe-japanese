@@ -35,7 +35,10 @@ nav button.on { color: var(--ink); }
 .tok.gap { margin-left: .5em; }
 .tok .r { font: 18px var(--mono); color: var(--muted); }
 .tok.bad > span:first-child { color: var(--bad); }
-.tok.bad .r { color: var(--bad); }
+.tok .typed { font: 18px var(--mono); }
+.tok .typed.good { color: var(--good); }
+.tok .typed.bad { color: var(--bad); text-decoration: line-through; }
+.tok.bad .r { color: var(--ink); }
 .reading { font: 28px var(--mono); }
 .sub { color: var(--muted); font-size: 15px; margin: 0; max-width: 480px; text-align: center; }
 .note { font-style: italic; }

@@ -94,12 +94,48 @@ export function match(toks: Tok[], input: string): { ok: boolean; blame: number 
   return pos.has(input.length) ? { ok: true, blame: null, at: input.length } : { ok: false, blame: toks.length - 1, at: Math.max(...pos) }
 }
 
+export type Seg = { text: string; ok: boolean }
+
+/** Align the typed answer to the tokens with the fewest wrong tokens. */
+export function align(toks: Tok[], input: string): Seg[] {
+  const n = toks.length, L = input.length
+  // cost[i][p]: min wrong tokens to read toks[i..] from input[p..]
+  const cost = Array.from({ length: n + 1 }, () => new Array<number>(L + 1).fill(Infinity))
+  const step = Array.from({ length: n + 1 }, () => new Array<Seg | null>(L + 1).fill(null))
+  cost[n][L] = 0
+  for (let i = n - 1; i >= 0; i--) {
+    for (let p = L; p >= 0; p--) {
+      for (const r of toks[i].readings) {
+        if (input.startsWith(r, p) && cost[i + 1][p + r.length] < cost[i][p]) {
+          cost[i][p] = cost[i + 1][p + r.length]
+          step[i][p] = { text: r, ok: true }
+        }
+      }
+      const maxK = i === n - 1 ? L - p : Math.min(4, L - p)
+      for (let k = 0; k <= maxK; k++) {
+        if (1 + cost[i + 1][p + k] < cost[i][p]) {
+          cost[i][p] = 1 + cost[i + 1][p + k]
+          step[i][p] = { text: input.slice(p, p + k), ok: false }
+        }
+      }
+    }
+  }
+  const segs: Seg[] = []
+  let p = 0
+  for (let i = 0; i < n; i++) {
+    const sg = step[i][p]!
+    segs.push(sg)
+    p += sg.text.length
+  }
+  return segs
+}
+
 /** Which kana did the reader probably see instead? E.g. typed "re" where ね was → れ. */
 export function misread(tok: Tok, rest: string): string | null {
   let best: [string, number] | null = null
   for (const [k, rs] of Object.entries(BASE)) {
     if (k === tok.kana) continue
-    for (const r of rs) if (rest.startsWith(r) && (!best || r.length > best[1])) best = [k, r.length]
+    for (const r of rs) if (rest === r && (!best || r.length > best[1])) best = [k, r.length]
   }
   return best?.[0] ?? null
 }
