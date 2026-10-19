@@ -137,7 +137,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
 
   // correct answers move on by themselves, unless there is a note to read
   useEffect(() => {
-    if (phase.kind !== 'reveal' || !(phase.ok || phase.fixed) || (phase.ok && phase.first && phase.word.note)) return
+    if (phase.kind !== 'reveal' || !phase.ok || (phase.first && phase.word.note)) return
     const t = setTimeout(next, 2500)
     return () => clearTimeout(t)
   }, [phase])
@@ -206,7 +206,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   const segs = fixed ? t.map(x => ({ text: x.pl, ok: true })) : phase.segs
   const retype = () => {
     if (match(t, normalize(input)).ok) {
-      // let the corrected reading sit for a moment too
+      // after a correction, move on only when asked
       shownAt.current = Date.now()
       setInput('')
       setPhase({ ...phase, fixed: true })
@@ -244,7 +244,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
       )}
       {first && w.note && <p className="sub note">{w.note}</p>}
       {ok || fixed
-        ? (ok && first && w.note) && <button className="next" onClick={next}>next</button>
+        ? (fixed || (first && w.note)) && <button className="next" onClick={next}>next</button>
         : <>
             <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} />
             <button className="hint" onClick={() => {
