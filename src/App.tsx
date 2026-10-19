@@ -149,7 +149,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         <div className="label">new kana</div>
         <div className="word">{k}</div>
         {reading && <div className="reading">{reading}</div>}
-        {ORIGIN[k] && <div className="sub">from kanji <span className="origin">{ORIGIN[k]}</span> {ORIGIN_MEANING[ORIGIN[k]]}</div>}
+        {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
         {NOTE[k] && <div className="sub">{NOTE[k]}</div>}
         <button className="next" onClick={advance}>next ↵</button>
       </main>
