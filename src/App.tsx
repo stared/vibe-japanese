@@ -151,7 +151,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         {reading && <div className="reading">{reading}</div>}
         {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
         {NOTE[k] && <div className="sub">{NOTE[k]}</div>}
-        <button className="next" onClick={advance}>next ↵</button>
+        <button className="next" onClick={advance}>next</button>
       </main>
     )
   }
@@ -190,7 +190,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
       </div>
       {first && w.note && <p className="sub note">{w.note}</p>}
       {ok
-        ? (first && w.note) && <button className="next" onClick={next}>next ↵</button>
+        ? (first && w.note) && <button className="next" onClick={next}>next</button>
         : <>
             <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} placeholder="type it" />
             <button className="hint" onClick={() => {
