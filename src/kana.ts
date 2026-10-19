@@ -82,16 +82,26 @@ export function normalize(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[\s'’\-.]/g, '')
 }
 
-/** Does the input spell the tokens? If not, which token broke first. */
-export function match(toks: Tok[], input: string): { ok: boolean; blame: number | null } {
+/** Does the input spell the tokens? If not: which token broke first, and where in the input. */
+export function match(toks: Tok[], input: string): { ok: boolean; blame: number | null; at: number } {
   let pos = new Set([0])
   for (let i = 0; i < toks.length; i++) {
     const next = new Set<number>()
     for (const p of pos) for (const r of toks[i].readings) if (input.startsWith(r, p)) next.add(p + r.length)
-    if (!next.size) return { ok: false, blame: i }
+    if (!next.size) return { ok: false, blame: i, at: Math.max(...pos) }
     pos = next
   }
-  return pos.has(input.length) ? { ok: true, blame: null } : { ok: false, blame: toks.length - 1 }
+  return pos.has(input.length) ? { ok: true, blame: null, at: input.length } : { ok: false, blame: toks.length - 1, at: Math.max(...pos) }
+}
+
+/** Which kana did the reader probably see instead? E.g. typed "re" where ね was → れ. */
+export function misread(tok: Tok, rest: string): string | null {
+  let best: [string, number] | null = null
+  for (const [k, rs] of Object.entries(BASE)) {
+    if (k === tok.kana) continue
+    for (const r of rs) if (rest.startsWith(r) && (!best || r.length > best[1])) best = [k, r.length]
+  }
+  return best?.[0] ?? null
 }
 
 // The gojūon grid: consonant rows × vowel columns

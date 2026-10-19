@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { BASE, display, match, normalize, type Tok } from './kana'
-import { ORIGIN, NOTE, confusables } from './kanaInfo'
+import { BASE, match, misread, normalize, type Tok } from './kana'
+import { ORIGIN, NOTE } from './kanaInfo'
 import { WORDS, NEW_CHARS, toks, type Word } from './words'
 import { answer, load, newCard, save, MIN, DAY, type Store } from './srs'
 import { Grid } from './Grid'
@@ -18,44 +18,40 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  const cards = Object.values(store.cards)
-  const due = cards.filter(c => c.due <= now).length
-  const today = store.log.filter(l => now - l.t < DAY && new Date(l.t).toDateString() === new Date(now).toDateString())
+  const due = Object.values(store.cards).filter(c => c.due <= now).length
 
   return (
     <div className="app">
       <header>
-        <span className="logo">かな</span>
         <nav>
           {(['study', 'grid', 'words'] as Tab[]).map(t => (
             <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>{t}</button>
           ))}
         </nav>
-        <span className="stats">
-          {due} due · {cards.length}/{WORDS.length} words · {today.length} reviews today
-          {today.length > 0 && ` (${Math.round((100 * today.filter(l => l.ok).length) / today.length)}%)`}
-        </span>
+        {due > 0 && <span className="due">{due} due</span>}
       </header>
       {tab === 'study' && <Study store={store} setStore={setStore} now={now} />}
       {tab === 'grid' && <Grid store={store} />}
-      {tab === 'words' && <WordList store={store} now={now} onReset={() => setStore({ cards: {}, kana: {}, log: [] })} />}
+      {tab === 'words' && <WordList store={store} onReset={() => setStore({ cards: {}, kana: {}, log: [] })} />}
     </div>
   )
 }
 
+type Result = { ok: boolean; given: string; blame: number | null; confused: string | null; before: Store }
 type Phase =
-  | { kind: 'intro'; word: Word }
-  | { kind: 'quiz'; word: Word }
-  | { kind: 'reveal'; word: Word; ok: boolean; given: string; blame: number | null; before: Store }
+  | { kind: 'kana'; word: Word; chars: string[]; i: number }
+  | { kind: 'quiz'; word: Word; first: boolean }
+  | ({ kind: 'reveal'; word: Word; first: boolean } & Result)
   | { kind: 'idle' }
 
 function pick(s: Store, now: number, last: string | null): Phase {
   const due = Object.values(s.cards).filter(c => c.due <= now).sort((a, b) => a.due - b.due)
   const c = due[0]?.id === last && due.length > 1 ? due[1] : due[0]
-  const byId = (id: string) => WORDS.find(w => w.kana === id)!
-  if (c) return { kind: 'quiz', word: byId(c.id) }
+  if (c) return { kind: 'quiz', word: WORDS.find(w => w.kana === c.id)!, first: false }
   const fresh = WORDS.find(w => !s.cards[w.kana])
-  return fresh ? { kind: 'intro', word: fresh } : { kind: 'idle' }
+  if (!fresh) return { kind: 'idle' }
+  const chars = NEW_CHARS.get(fresh.kana)!
+  return chars.length ? { kind: 'kana', word: fresh, chars, i: 0 } : { kind: 'quiz', word: fresh, first: true }
 }
 
 export function speak(text: string) {
@@ -70,6 +66,7 @@ export function speak(text: string) {
 function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) => void; now: number }) {
   const [phase, setPhase] = useState<Phase>(() => pick(store, Date.now(), null))
   const [input, setInput] = useState('')
+  const [shake, setShake] = useState(0)
   const storeRef = useRef(store)
   storeRef.current = store
   const last = useRef<string | null>(null)
@@ -80,6 +77,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   }
   const next = () => {
     setInput('')
+    setShake(0)
     setPhase(pick(storeRef.current, Date.now(), last.current))
   }
 
@@ -88,39 +86,41 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     if (phase.kind === 'idle') setPhase(pick(storeRef.current, now, last.current))
   }, [now])
 
-  const startQuiz = (w: Word) => {
-    const s = storeRef.current
-    commit({ ...s, cards: { ...s.cards, [w.kana]: newCard(w.kana, Date.now()) } })
-    setPhase({ kind: 'quiz', word: w })
-  }
-
-  const submit = (w: Word) => {
+  const submit = (w: Word, first: boolean) => {
     const t = toks(w)
     const given = normalize(input)
-    const { ok, blame } = given ? match(t, given) : { ok: false, blame: null }
-    const before = storeRef.current
-    commit(answer(before, w.kana, t, ok, blame, Date.now()))
+    const m = given ? match(t, given) : { ok: false, blame: null, at: 0 }
+    const confused = m.blame !== null ? misread(t[m.blame], given.slice(m.at)) : null
+    let before = storeRef.current
+    if (!before.cards[w.kana]) before = { ...before, cards: { ...before.cards, [w.kana]: newCard(w.kana, Date.now()) } }
+    commit(answer(before, w.kana, t, m.ok, m.blame, Date.now()))
     last.current = w.kana
-    setPhase({ kind: 'reveal', word: w, ok, given: input, blame, before })
+    setInput('')
+    setPhase({ kind: 'reveal', word: w, first, ok: m.ok, given: input.trim(), blame: m.blame, confused, before })
     speak(w.kana)
   }
 
-  const overrule = () => {
-    if (phase.kind !== 'reveal') return
-    commit(answer(phase.before, phase.word.kana, toks(phase.word), true, null, Date.now()))
-    next()
-  }
+  // correct answers move on by themselves, unless there is a note to read
+  useEffect(() => {
+    if (phase.kind !== 'reveal' || !phase.ok || (phase.first && phase.word.note)) return
+    const t = setTimeout(next, 1400)
+    return () => clearTimeout(t)
+  }, [phase])
 
   useEffect(() => {
-    if (phase.kind !== 'intro' && phase.kind !== 'reveal') return
     const h = (e: KeyboardEvent) => {
-      if (e.repeat) return
-      if (e.key === 'Enter') {
+      // the Enter that submitted an answer must not also skip its reveal
+      if (e.repeat || (e.target instanceof HTMLInputElement && e.key === 'Enter')) return
+      if (phase.kind === 'kana' && e.key === 'Enter') {
         e.preventDefault()
-        phase.kind === 'intro' ? startQuiz(phase.word) : next()
-      } else if (e.key === ' ') {
+        const i = phase.i + 1
+        setPhase(i < phase.chars.length ? { ...phase, i } : { kind: 'quiz', word: phase.word, first: true })
+      } else if (phase.kind === 'reveal' && phase.ok && e.key === 'Enter') {
         e.preventDefault()
-        speak(phase.word.kana)
+        next()
+      } else if (phase.kind === 'reveal' && !phase.ok && e.key === 'Escape') {
+        commit(answer(phase.before, phase.word.kana, toks(phase.word), true, null, Date.now()))
+        next()
       }
     }
     window.addEventListener('keydown', h)
@@ -131,118 +131,94 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     const nextDue = Math.min(...Object.values(store.cards).map(c => c.due))
     return (
       <main className="study">
-        <p className="big-msg">おつかれさま</p>
-        <p className="muted">otsukaresama: "you've worked hard". All words learned and nothing due. Next review {fmtIn(nextDue - now)}.</p>
+        <div className="word">おつかれさま</div>
+        <p className="sub">All done. Next review {fmtIn(nextDue - now)}.</p>
+      </main>
+    )
+  }
+
+  if (phase.kind === 'kana') {
+    const k = phase.chars[phase.i]
+    const reading = BASE[k]?.[0]
+    return (
+      <main className="study">
+        <div className="label">new kana</div>
+        <div className="word">{k}</div>
+        <div className="reading">{reading ?? ' '}</div>
+        {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span></div>}
+        {NOTE[k] && <div className="sub">{NOTE[k]}</div>}
+        <div className="hint">enter</div>
       </main>
     )
   }
 
   const w = phase.word
   const t = toks(w)
-  const fresh = new Set(NEW_CHARS.get(w.kana))
-
-  if (phase.kind === 'intro') {
-    return (
-      <main className="study">
-        <div className="label">{fresh.size ? `new word · new kana: ${[...fresh].join(' ')}` : 'new word · only kana you know'}</div>
-        <KanaWord toks={t} mark={i => [...t[i].kana].some(c => fresh.has(c)) || (t[i].gem && fresh.has('っ')) ? 'new' : ''} />
-        <Ruby toks={t} />
-        <Meaning w={w} />
-        {fresh.size > 0 && (
-          <div className="kana-cards">
-            {[...fresh].map(c => <KanaCard key={c} k={c} />)}
-          </div>
-        )}
-        <div className="hint">Enter: quiz me · Space: listen</div>
-      </main>
-    )
-  }
 
   if (phase.kind === 'quiz') {
     return (
       <main className="study">
-        <div className="label">read it</div>
-        <KanaWord toks={t} mark={() => ''} />
-        <input
-          autoFocus
-          className="answer"
-          value={input}
-          placeholder="type the reading…"
-          spellCheck={false}
-          autoComplete="off"
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && !e.repeat && submit(w)}
-        />
-        <div className="hint">Polish (cuki) or Hepburn (tsuki) both work · empty Enter = don't know</div>
+        <div className="label">{phase.first ? 'new word' : ' '}</div>
+        <KanaWord toks={t} />
+        <AnswerInput value={input} onChange={setInput} onEnter={() => submit(w, phase.first)} />
       </main>
     )
   }
 
-  const { ok, given, blame } = phase
+  const { ok, blame, confused, first } = phase
+  const retype = () => {
+    if (match(t, normalize(input)).ok) next()
+    else setShake(n => n + 1)
+  }
   return (
     <main className="study">
-      <div className={'label ' + (ok ? 'good' : 'bad')}>{ok ? '✓ correct' : given ? `✗ you typed “${given}”` : '✗ skipped'}</div>
-      <KanaWord toks={t} mark={i => (i === blame ? 'bad' : '')} />
-      <Ruby toks={t} blame={blame} />
-      <Meaning w={w} />
-      <div className="hint">
-        Enter: next · Space: listen
-        {!ok && given && <> · <button className="link" onClick={overrule}>typo, count as correct</button></>}
+      <div className={'label ' + (ok ? 'good' : 'bad')}>{ok ? 'correct' : phase.given ? `not “${phase.given}”` : 'reading'}</div>
+      <KanaWord toks={t} readings blame={blame} onClick={() => speak(w.kana)} />
+      {confused && blame !== null && (
+        <div className="confusion">
+          <span className="jp">{t[blame].kana}</span> {t[blame].pl}
+          <span className="vs">not</span>
+          <span className="jp">{confused}</span> {BASE[confused][0]}
+        </div>
+      )}
+      <div className="meaning">
+        {w.kanji && <span className="kanji">{w.kanji}</span>} {w.en}
       </div>
+      {first && w.note && <p className="sub note">{w.note}</p>}
+      {ok
+        ? (first && w.note) && <div className="hint">enter</div>
+        : <>
+            <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} placeholder="type it" />
+            <div className="hint">esc if it was a typo</div>
+          </>}
     </main>
   )
 }
 
-function KanaWord({ toks: t, mark }: { toks: Tok[]; mark: (i: number) => string }) {
+function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { value: string; onChange: (s: string) => void; onEnter: () => void; placeholder?: string; shake?: boolean }) {
   return (
-    <div className="kana-word">
+    <input
+      autoFocus
+      className={'answer' + (shake ? ' shake' : '')}
+      value={value}
+      placeholder={placeholder}
+      spellCheck={false}
+      autoComplete="off"
+      onChange={e => onChange(e.target.value)}
+      onKeyDown={e => e.key === 'Enter' && !e.repeat && onEnter()}
+    />
+  )
+}
+
+function KanaWord({ toks: t, readings, blame, onClick }: { toks: Tok[]; readings?: boolean; blame?: number | null; onClick?: () => void }) {
+  return (
+    <div className="word" onClick={onClick}>
       {t.map((x, i) => (
-        <span key={i} className={mark(i)}>{x.space ? '　' : ''}{x.gem ? 'っ' : ''}{x.kana}</span>
+        <span key={i} className={'tok' + (i === blame ? ' bad' : '') + (x.space ? ' gap' : '')}>
+          <span>{x.gem ? 'っ' : ''}{x.kana}</span>
+          {readings && <span className="r">{x.pl}</span>}
+        </span>
       ))}
-    </div>
-  )
-}
-
-function Ruby({ toks: t, blame }: { toks: Tok[]; blame?: number | null }) {
-  return (
-    <div className="ruby">
-      <div className="pl">
-        {t.map((x, i) => (
-          <span key={i} className={'cell' + (i === blame ? ' bad' : '') + (x.space ? ' gap' : '')}>
-            <span className="k">{x.gem ? 'っ' : ''}{x.kana}</span>
-            <span className="r">{x.pl}</span>
-          </span>
-        ))}
-      </div>
-      {display(t, false) !== display(t) && <div className="hep">Hepburn: {display(t, false)}</div>}
-    </div>
-  )
-}
-
-function Meaning({ w }: { w: Word }) {
-  return (
-    <div className="meaning">
-      {w.kanji && <span className="kanji">{w.kanji}</span>}
-      <span className="en">{w.en}</span>
-      {w.note && <p className="note">{w.note}</p>}
-    </div>
-  )
-}
-
-export function KanaCard({ k }: { k: string }) {
-  const t = BASE[k] ? toks({ kana: k, en: '' })[0] : null
-  const conf = confusables(k)
-  return (
-    <div className="kana-card">
-      <div className="fonts">
-        <span className="sans">{k}</span>
-        <span className="serif">{k}</span>
-        <span className="hand">{k}</span>
-      </div>
-      {t && <div className="reading">{t.pl}{t.hep !== t.pl && ` · ${t.hep}`}</div>}
-      {ORIGIN[k] && <div className="origin">from <span className="serif">{ORIGIN[k]}</span></div>}
-      {NOTE[k] && <div className="note">{NOTE[k]}</div>}
-      {conf.length > 0 && <div className="conf">don't confuse: {conf.map(c => <span key={c}>{c}</span>)}</div>}
     </div>
   )
 }

@@ -30,10 +30,3 @@ export const NOTE: Record<string, string> = {
   ょ: 'Small よ: glides into the previous kana (き + ょ → kio).',
   ぱ: '゜ (maru) turns h into p. Old Japanese h was once p.',
 }
-
-const CONFUSABLE = [
-  ['さ', 'ち'], ['さ', 'き'], ['ぬ', 'め'], ['ね', 'れ', 'わ'], ['る', 'ろ'],
-  ['は', 'ほ'], ['い', 'り'], ['あ', 'お'], ['こ', 'に'], ['ま', 'も'], ['く', 'へ'],
-]
-export const confusables = (k: string) =>
-  [...new Set(CONFUSABLE.filter(g => g.includes(k)).flat())].filter(x => x !== k)
