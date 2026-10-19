@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { GRID, GRID_VOICED, VOWELS, YOON_BASES, YOON_SMALL } from './kana'
 import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, toks } from './words'
 import type { Store } from './srs'
 import { useScript } from './script'
-import { Dots, kanaHistory } from './history'
+import { Dots, kanaHistories, recentScore } from './history'
 
 const TABLES = [
   { head: VOWELS, rows: GRID.map(r => ({ c: r.c, cells: [...r.cells] })), note: 'Consonant + vowel. Irregular: si, ci, cu, fu.' },
@@ -17,13 +17,15 @@ export function Grid({ store }: { store: Store }) {
   const [hover, setHover] = useState<string | null>(null)
   const learned = WORDS.filter(w => store.cards[w.kana])
   const seen = new Set(learned.flatMap(w => toks(w).map(t => t.kana)))
+  const hists = useMemo(() => kanaHistories(store.log), [store.log])
 
   const cell = (k: string, j: number) => {
     if (k === '・') return <td key={j} />
-    const st = store.kana[k]
-    const weak = st && st.ema < 0.6
+    const score = seen.has(k) ? recentScore(hists.get(k) ?? []) : null
+    // red (0) → green (1) by recent success
+    const style = score === null ? undefined : { color: `color-mix(in oklab, var(--good) ${Math.round(score * 100)}%, var(--bad))` }
     return (
-      <td key={j} className={(seen.has(k) ? 'known' : 'locked') + (weak ? ' weak' : '') + (sel === k ? ' sel' : '')}
+      <td key={j} style={style} className={(seen.has(k) ? 'known' : 'locked') + (sel === k ? ' sel' : '')}
         onClick={() => setSel(sel === k ? null : k)} onMouseEnter={() => setHover(k)} onMouseLeave={() => setHover(null)}>
         {k}
       </td>
@@ -43,12 +45,12 @@ export function Grid({ store }: { store: Store }) {
           </section>
         ))}
       </div>
-      <aside className="detail">{(hover ?? sel) && <Detail k={(hover ?? sel)!} store={store} />}</aside>
+      <aside className="detail">{(hover ?? sel) && <Detail k={(hover ?? sel)!} store={store} hist={hists.get((hover ?? sel)!) ?? []} />}</aside>
     </main>
   )
 }
 
-function Detail({ k, store }: { k: string; store: Store }) {
+function Detail({ k, store, hist }: { k: string; store: Store; hist: boolean[] }) {
   const sc = useScript()
   const t = toks({ kana: k, en: '' })[0]
   const words = WORDS.filter(w => store.cards[w.kana] && toks(w).some(x => x.kana === k))
@@ -56,12 +58,12 @@ function Detail({ k, store }: { k: string; store: Store }) {
     <>
       <div className="detail-kana">{k}</div>
       <div className="reading">{t[sc]}</div>
-      <Dots hist={kanaHistory(store.log, k)} />
       {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
       {NOTE[k] && <p className="sub">{NOTE[k]}</p>}
       <ul className="mini-words">
         {words.map(w => <li key={w.kana}><span className="jp">{w.kana}</span> {w.en}</li>)}
       </ul>
+      <Dots hist={hist} />
     </>
   )
 }

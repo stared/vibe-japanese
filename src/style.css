@@ -70,7 +70,6 @@ header > nav + .scripts { margin-left: auto; }
 .kana-grid th { font: 12px var(--mono); color: var(--muted); font-weight: normal; width: 20px; }
 .kana-grid td { width: 48px; height: 46px; text-align: center; font: 22px var(--jp); border-radius: 6px; cursor: pointer; }
 .kana-grid td.locked { color: var(--faint); }
-.kana-grid td.weak { color: var(--bad); }
 .kana-grid td:hover, .kana-grid td.sel { background: color-mix(in oklab, var(--faint) 45%, transparent); }
 .detail { position: sticky; top: 24px; align-self: start; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 .detail .sub { text-align: left; }
