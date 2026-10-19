@@ -41,7 +41,7 @@ export default function App() {
       </header>
       {tab === 'study' && <Study store={store} setStore={setStore} now={now} />}
       {tab === 'grid' && <Grid store={store} />}
-      {tab === 'words' && <WordList store={store} onReset={() => setStore({ cards: {}, kana: {}, log: [] })} />}
+      {tab === 'words' && <WordList store={store} onReplace={setStore} />}
     </div>
     </ScriptCtx.Provider>
   )

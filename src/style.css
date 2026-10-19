@@ -88,4 +88,5 @@ header > nav + .scripts { margin-left: auto; }
 .words .r { font-family: var(--mono); color: var(--muted); }
 .words tr:not(.locked) { cursor: pointer; }
 .words tr.locked { color: var(--faint); }
-.reset { margin-top: 32px; font-size: 13px; color: var(--muted); text-decoration: underline; }
+.footer { margin-top: 32px; display: flex; gap: 20px; font-size: 13px; color: var(--muted); }
+.footer button, .footer label { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
