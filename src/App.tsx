@@ -3,7 +3,7 @@ import { BASE, SCRIPTS, align, match, misread, normalize, tokenize, type Script,
 import { ScriptCtx, loadScript, saveScript, useScript } from './script'
 import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, NEW_CHARS, toks, type Word } from './words'
-import { answer, drill, load, newCard, save, solid, MIN, DAY, type Store } from './srs'
+import { load, logRetype, newCard, record, save, solid, MIN, DAY, type Attempt, type Store } from './srs'
 import { Grid } from './Grid'
 import { WordList } from './WordList'
 
@@ -47,7 +47,7 @@ export default function App() {
   )
 }
 
-type Result = { ok: boolean; segs: Seg[] | null; before: Store; fixed?: boolean }
+type Result = { ok: boolean; segs: Seg[] | null; before: Store; attempt: Attempt; fixed?: boolean }
 type Phase =
   | { kind: 'kana'; word: Word; chars: string[]; i: number }
   | { kind: 'quiz'; word: Word; first: boolean; drill?: boolean }
@@ -123,15 +123,13 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     const segs = given ? align(t, given) : null
     const wrong = segs ? segs.flatMap((sg, i) => (sg.ok ? [] : [i])) : t.map((_, i) => i)
     let before = storeRef.current
-    if (isDrill) commit(drill(before, t, wrong, Date.now()))
-    else {
-      if (!before.cards[w.kana]) before = { ...before, cards: { ...before.cards, [w.kana]: newCard(w.kana, Date.now()) } }
-      commit(answer(before, w.kana, t, wrong, Date.now()))
-    }
+    if (!isDrill && !before.cards[w.kana]) before = { ...before, cards: { ...before.cards, [w.kana]: newCard(w.kana, Date.now()) } }
+    const attempt: Attempt = { typed: input, kind: isDrill ? 'drill' : first ? 'new' : 'review' }
+    commit(record(before, w.kana, t, wrong, Date.now(), attempt))
     last.current = w.kana
     setInput('')
     shownAt.current = Date.now()
-    setPhase({ kind: 'reveal', word: w, first, drill: isDrill, ok: wrong.length === 0, segs, before })
+    setPhase({ kind: 'reveal', word: w, first, drill: isDrill, ok: wrong.length === 0, segs, before, attempt })
     speak(w.kana)
   }
 
@@ -154,7 +152,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         e.preventDefault()
         next()
       } else if (phase.kind === 'reveal' && !phase.ok && !phase.fixed && e.key === 'Escape') {
-        commit(phase.drill ? drill(phase.before, toks(phase.word), [], Date.now()) : answer(phase.before, phase.word.kana, toks(phase.word), [], Date.now()))
+        commit(record(phase.before, phase.word.kana, toks(phase.word), [], Date.now(), { ...phase.attempt, typo: true }))
         next()
       }
     }
@@ -205,7 +203,9 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   const { ok, first, fixed } = phase
   const segs = fixed ? t.map(x => ({ text: x.pl, ok: true })) : phase.segs
   const retype = () => {
-    if (match(t, normalize(input)).ok) {
+    const good = match(t, normalize(input)).ok
+    commit(logRetype(storeRef.current, w.kana, input, good, Date.now()))
+    if (good) {
       // after a correction, move on only when asked
       shownAt.current = Date.now()
       setInput('')
@@ -248,7 +248,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         : <>
             <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} />
             <button className="hint" onClick={() => {
-              commit(phase.drill ? drill(phase.before, t, [], Date.now()) : answer(phase.before, w.kana, t, [], Date.now()))
+              commit(record(phase.before, w.kana, t, [], Date.now(), { ...phase.attempt, typo: true }))
               next()
             }}>typo</button>
           </>}

@@ -4,6 +4,7 @@ import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, toks } from './words'
 import type { Store } from './srs'
 import { useScript } from './script'
+import { Dots, kanaHistory } from './history'
 
 const TABLES = [
   { head: VOWELS, rows: GRID.map(r => ({ c: r.c, cells: [...r.cells] })), note: 'Consonant + vowel. Irregular: si, ci, cu, fu.' },
@@ -55,6 +56,7 @@ function Detail({ k, store }: { k: string; store: Store }) {
     <>
       <div className="detail-kana">{k}</div>
       <div className="reading">{t[sc]}</div>
+      <Dots hist={kanaHistory(store.log, k)} />
       {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
       {NOTE[k] && <p className="sub">{NOTE[k]}</p>}
       <ul className="mini-words">

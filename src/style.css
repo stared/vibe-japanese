@@ -90,3 +90,7 @@ header > nav + .scripts { margin-left: auto; }
 .words tr.locked { color: var(--faint); }
 .footer { margin-bottom: 20px; display: flex; gap: 20px; font-size: 13px; color: var(--muted); }
 .footer button, .footer label { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.dots { display: inline-flex; gap: 3px; flex-wrap: wrap; max-width: 260px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; }
+.dots i.ok { background: var(--good); }
+.dots i.no { background: var(--bad); }

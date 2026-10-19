@@ -6,10 +6,13 @@ const STEPS = [1, 10] // learning steps, minutes
 
 export type Card = { id: string; due: number; step: number; ivl: number; ease: number; reps: number; lapses: number }
 export type KStat = { n: number; ema: number }
+export type Kind = 'new' | 'review' | 'drill' | 'retype'
+/** One attempt. id: the word (or bare kana) shown; miss: indices of misread tokens. */
+export type LogEntry = { t: number; id: string; ok: boolean; typed?: string; miss?: number[]; kind?: Kind; typo?: boolean }
 export type Store = {
   cards: Record<string, Card>
   kana: Record<string, KStat>
-  log: { t: number; id: string; ok: boolean }[]
+  log: LogEntry[]
 }
 
 const KEY = 'vibe-japanese/v1'
@@ -51,19 +54,22 @@ function updateKana(kana: Store['kana'], toks: Tok[], wrong: number[]) {
   return out
 }
 
-export function answer(s: Store, id: string, toks: Tok[], wrong: number[], now: number): Store {
+export type Attempt = { typed: string; kind: Kind; typo?: boolean }
+
+/** Record an answer. Drills move only kana strength; new words and reviews also reschedule. */
+export function record(s: Store, id: string, toks: Tok[], wrong: number[], now: number, a: Attempt): Store {
   const ok = wrong.length === 0
+  const entry: LogEntry = { t: now, id, ok, typed: a.typed, miss: wrong, kind: a.kind, ...(a.typo ? { typo: true } : {}) }
   return {
-    cards: { ...s.cards, [id]: schedule(s.cards[id], ok, now) },
+    cards: a.kind === 'drill' ? s.cards : { ...s.cards, [id]: schedule(s.cards[id], ok, now) },
     kana: updateKana(s.kana, toks, wrong),
-    log: [...s.log, { t: now, id, ok }],
+    log: [...s.log, entry],
   }
 }
 
-/** Practice outside the schedule: only kana strength moves. */
-export function drill(s: Store, toks: Tok[], wrong: number[], now: number): Store {
-  return { ...s, kana: updateKana(s.kana, toks, wrong), log: [...s.log, { t: now, id: 'drill', ok: wrong.length === 0 }] }
-}
+/** Retypes after a mistake: logged, but they change nothing else. */
+export const logRetype = (s: Store, id: string, typed: string, ok: boolean, now: number): Store =>
+  ({ ...s, log: [...s.log, { t: now, id, ok, typed, kind: 'retype' }] })
 
 // a kana counts as learned after enough reads with a mostly-correct recent streak
 export const solid = (st?: KStat) => !!st && st.n >= 6 && st.ema >= 0.85

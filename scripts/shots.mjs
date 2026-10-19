@@ -13,6 +13,8 @@ const browser = await puppeteer.launch({
   args: ['--mute-audio'],
 })
 const page = await browser.newPage()
+// --mute-audio doesn't silence macOS system speech: stub it out
+await page.evaluateOnNewDocument(() => Object.defineProperty(window, 'speechSynthesis', { value: { speak() {}, cancel() {} } }))
 await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: process.env.SCHEME ?? 'light' }])
 // SEED: JSON list of word ids to mark as learned and due now, first one due first
 const seed = JSON.parse(process.env.SEED ?? '[]')

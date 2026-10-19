@@ -3,6 +3,7 @@ import { WORDS, toks } from './words'
 import type { Store } from './srs'
 import { speak } from './App'
 import { useScript } from './script'
+import { Dots, wordHistory } from './history'
 
 export function WordList({ store, onReplace }: { store: Store; onReplace: (s: Store) => void }) {
   const sc = useScript()
@@ -36,6 +37,7 @@ export function WordList({ store, onReplace }: { store: Store; onReplace: (s: St
                 <td className="jp">{w.kana}</td>
                 <td className="r">{known && display(toks(w), sc)}</td>
                 <td>{known && w.en}</td>
+                <td>{known && <Dots hist={wordHistory(store.log, w.kana)} max={15} />}</td>
               </tr>
             )
           })}
