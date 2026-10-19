@@ -59,3 +59,11 @@ export function answer(s: Store, id: string, toks: Tok[], wrong: number[], now: 
     log: [...s.log, { t: now, id, ok }],
   }
 }
+
+/** Practice outside the schedule: only kana strength moves. */
+export function drill(s: Store, toks: Tok[], wrong: number[], now: number): Store {
+  return { ...s, kana: updateKana(s.kana, toks, wrong), log: [...s.log, { t: now, id: 'drill', ok: wrong.length === 0 }] }
+}
+
+// a kana counts as learned after enough reads with a mostly-correct recent streak
+export const solid = (st?: KStat) => !!st && st.n >= 6 && st.ema >= 0.85

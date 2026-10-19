@@ -3,7 +3,7 @@ import { BASE, SCRIPTS, align, match, misread, normalize, tokenize, type Script,
 import { ScriptCtx, loadScript, saveScript, useScript } from './script'
 import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, NEW_CHARS, toks, type Word } from './words'
-import { answer, load, newCard, save, MIN, DAY, type Store } from './srs'
+import { answer, drill, load, newCard, save, solid, MIN, DAY, type Store } from './srs'
 import { Grid } from './Grid'
 import { WordList } from './WordList'
 
@@ -50,18 +50,37 @@ export default function App() {
 type Result = { ok: boolean; segs: Seg[] | null; before: Store }
 type Phase =
   | { kind: 'kana'; word: Word; chars: string[]; i: number }
-  | { kind: 'quiz'; word: Word; first: boolean }
-  | ({ kind: 'reveal'; word: Word; first: boolean } & Result)
+  | { kind: 'quiz'; word: Word; first: boolean; drill?: boolean }
+  | ({ kind: 'reveal'; word: Word; first: boolean; drill?: boolean } & Result)
   | { kind: 'idle' }
 
 function pick(s: Store, now: number, last: string | null): Phase {
   const due = Object.values(s.cards).filter(c => c.due <= now).sort((a, b) => a.due - b.due)
   const c = due[0]?.id === last && due.length > 1 ? due[1] : due[0]
   if (c) return { kind: 'quiz', word: WORDS.find(w => w.kana === c.id)!, first: false }
+  const d = drillItem(s, last)
+  if (d) return { kind: 'quiz', word: d, first: false, drill: true }
   const fresh = WORDS.find(w => !s.cards[w.kana])
   if (!fresh) return { kind: 'idle' }
   const chars = NEW_CHARS.get(fresh.kana)!
   return chars.length ? { kind: 'kana', word: fresh, chars, i: 0 } : { kind: 'quiz', word: fresh, first: true }
+}
+
+/** Before any new kana, drill the known ones until solid: real words first, the bare kana for variety. */
+function drillItem(s: Store, last: string | null): Word | null {
+  const learned = WORDS.filter(w => s.cards[w.kana])
+  const known = [...new Set(learned.flatMap(w => toks(w).map(t => t.kana)))]
+  const weak = known.filter(k => !solid(s.kana[k]))
+  if (!weak.length) return null
+  const n = (k: string) => s.kana[k]?.n ?? 0
+  weak.sort((a, b) => n(a) - n(b))
+  const k = weak[Math.floor(Math.random() * Math.min(2, weak.length))]
+  // a third of the time, any known word: keeps older kana in the mix
+  const options: Word[] = Math.random() < 1 / 3 && learned.length > 2
+    ? learned
+    : [...learned.filter(w => toks(w).some(t => t.kana === k)), { kana: k, en: '' }]
+  const pool = options.filter(w => w.kana !== last)
+  return pool[Math.floor(Math.random() * pool.length)] ?? options[0]
 }
 
 export function speak(text: string) {
@@ -97,24 +116,27 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     if (phase.kind === 'idle') setPhase(pick(storeRef.current, now, last.current))
   }, [now])
 
-  const submit = (w: Word, first: boolean) => {
+  const submit = (w: Word, first: boolean, isDrill = false) => {
     const t = toks(w)
     const given = normalize(input)
     const segs = given ? align(t, given) : null
     const wrong = segs ? segs.flatMap((sg, i) => (sg.ok ? [] : [i])) : t.map((_, i) => i)
     let before = storeRef.current
-    if (!before.cards[w.kana]) before = { ...before, cards: { ...before.cards, [w.kana]: newCard(w.kana, Date.now()) } }
-    commit(answer(before, w.kana, t, wrong, Date.now()))
+    if (isDrill) commit(drill(before, t, wrong, Date.now()))
+    else {
+      if (!before.cards[w.kana]) before = { ...before, cards: { ...before.cards, [w.kana]: newCard(w.kana, Date.now()) } }
+      commit(answer(before, w.kana, t, wrong, Date.now()))
+    }
     last.current = w.kana
     setInput('')
-    setPhase({ kind: 'reveal', word: w, first, ok: wrong.length === 0, segs, before })
+    setPhase({ kind: 'reveal', word: w, first, drill: isDrill, ok: wrong.length === 0, segs, before })
     speak(w.kana)
   }
 
   // correct answers move on by themselves, unless there is a note to read
   useEffect(() => {
     if (phase.kind !== 'reveal' || !phase.ok || (phase.first && phase.word.note)) return
-    const t = setTimeout(next, 1400)
+    const t = setTimeout(next, 2500)
     return () => clearTimeout(t)
   }, [phase])
 
@@ -130,7 +152,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         e.preventDefault()
         next()
       } else if (phase.kind === 'reveal' && !phase.ok && e.key === 'Escape') {
-        commit(answer(phase.before, phase.word.kana, toks(phase.word), [], Date.now()))
+        commit(phase.drill ? drill(phase.before, toks(phase.word), [], Date.now()) : answer(phase.before, phase.word.kana, toks(phase.word), [], Date.now()))
         next()
       }
     }
@@ -173,7 +195,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     return (
       <main className="study">
         <KanaWord toks={t} />
-        <AnswerInput value={input} onChange={setInput} onEnter={() => submit(w, phase.first)} />
+        <AnswerInput value={input} onChange={setInput} onEnter={() => submit(w, phase.first, phase.drill)} />
       </main>
     )
   }
@@ -208,16 +230,18 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
           <span className="jp">{c}</span> {tokenize(c)[0][sc]}
         </div>
       ))}
-      <div className="meaning">
-        {w.kanji && <span className="kanji">{w.kanji}</span>} {w.en}
-      </div>
+      {w.en && (
+        <div className="meaning">
+          {w.kanji && <span className="kanji">{w.kanji}</span>} {w.en}
+        </div>
+      )}
       {first && w.note && <p className="sub note">{w.note}</p>}
       {ok
         ? (first && w.note) && <button className="next" onClick={next}>next</button>
         : <>
             <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} />
             <button className="hint" onClick={() => {
-              commit(answer(phase.before, w.kana, t, [], Date.now()))
+              commit(phase.drill ? drill(phase.before, t, [], Date.now()) : answer(phase.before, w.kana, t, [], Date.now()))
               next()
             }}>typo</button>
           </>}

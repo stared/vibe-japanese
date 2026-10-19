@@ -10,6 +10,7 @@ mkdirSync(out, { recursive: true })
 const browser = await puppeteer.launch({
   executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   defaultViewport: { width: 1280, height: 800 },
+  args: ['--mute-audio'],
 })
 const page = await browser.newPage()
 await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: process.env.SCHEME ?? 'light' }])
