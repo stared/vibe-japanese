@@ -47,7 +47,7 @@ export default function App() {
   )
 }
 
-type Result = { ok: boolean; segs: Seg[] | null; before: Store }
+type Result = { ok: boolean; segs: Seg[] | null; before: Store; fixed?: boolean }
 type Phase =
   | { kind: 'kana'; word: Word; chars: string[]; i: number }
   | { kind: 'quiz'; word: Word; first: boolean; drill?: boolean }
@@ -137,7 +137,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
 
   // correct answers move on by themselves, unless there is a note to read
   useEffect(() => {
-    if (phase.kind !== 'reveal' || !phase.ok || (phase.first && phase.word.note)) return
+    if (phase.kind !== 'reveal' || !(phase.ok || phase.fixed) || (phase.ok && phase.first && phase.word.note)) return
     const t = setTimeout(next, 2500)
     return () => clearTimeout(t)
   }, [phase])
@@ -150,10 +150,10 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         e.preventDefault()
         const i = phase.i + 1
         setPhase(i < phase.chars.length ? { ...phase, i } : { kind: 'quiz', word: phase.word, first: true })
-      } else if (phase.kind === 'reveal' && phase.ok && e.key === 'Enter' && Date.now() - shownAt.current > 1000) {
+      } else if (phase.kind === 'reveal' && (phase.ok || phase.fixed) && e.key === 'Enter' && Date.now() - shownAt.current > 1000) {
         e.preventDefault()
         next()
-      } else if (phase.kind === 'reveal' && !phase.ok && e.key === 'Escape') {
+      } else if (phase.kind === 'reveal' && !phase.ok && !phase.fixed && e.key === 'Escape') {
         commit(phase.drill ? drill(phase.before, toks(phase.word), [], Date.now()) : answer(phase.before, phase.word.kana, toks(phase.word), [], Date.now()))
         next()
       }
@@ -202,10 +202,15 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     )
   }
 
-  const { ok, segs, first } = phase
+  const { ok, first, fixed } = phase
+  const segs = fixed ? t.map(x => ({ text: x.pl, ok: true })) : phase.segs
   const retype = () => {
-    if (match(t, normalize(input)).ok) next()
-    else setShake(n => n + 1)
+    if (match(t, normalize(input)).ok) {
+      // let the corrected reading sit for a moment too
+      shownAt.current = Date.now()
+      setInput('')
+      setPhase({ ...phase, fixed: true })
+    } else setShake(n => n + 1)
   }
   const confusions = segs ? t.flatMap((x, i) => {
     const c = segs[i].ok ? null : misread(x, segs[i].text)
@@ -238,8 +243,8 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         </div>
       )}
       {first && w.note && <p className="sub note">{w.note}</p>}
-      {ok
-        ? (first && w.note) && <button className="next" onClick={next}>next</button>
+      {ok || fixed
+        ? (ok && first && w.note) && <button className="next" onClick={next}>next</button>
         : <>
             <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} />
             <button className="hint" onClick={() => {
