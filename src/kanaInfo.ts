@@ -12,6 +12,20 @@ export const ORIGIN: Record<string, string> = {
   わ: '和', を: '遠', ん: '无',
 }
 
+// What the source kanji means. The kanji was borrowed for its sound only.
+export const ORIGIN_MEANING: Record<string, string> = {
+  安: 'peaceful', 以: 'by means of', 宇: 'eaves; universe', 衣: 'clothing', 於: 'at, in',
+  加: 'add', 幾: 'how many', 久: 'long time', 計: 'measure', 己: 'self',
+  左: 'left', 之: 'this; of', 寸: 'inch', 世: 'world', 曽: 'formerly',
+  太: 'thick', 知: 'know', 川: 'river', 天: 'heaven', 止: 'stop',
+  奈: 'Nara', 仁: 'benevolence', 奴: 'servant', 祢: 'ancestral shrine', 乃: 'thus',
+  波: 'wave', 比: 'compare', 不: 'not', 部: 'part', 保: 'protect',
+  末: 'end', 美: 'beauty', 武: 'military', 女: 'woman', 毛: 'fur, hair',
+  也: 'also', 由: 'reason', 与: 'give',
+  良: 'good', 利: 'profit', 留: 'stay', 礼: 'bow, thanks', 呂: 'spine',
+  和: 'harmony', 遠: 'far', 无: 'nothing',
+}
+
 export const NOTE: Record<string, string> = {
   し: 's + i → si (Hepburn shi): s softens before i.',
   ち: 't + i → ci (Hepburn chi): t becomes ć before i.',

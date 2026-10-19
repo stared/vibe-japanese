@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { BASE, match, misread, normalize, type Tok } from './kana'
-import { ORIGIN, NOTE } from './kanaInfo'
+import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, NEW_CHARS, toks, type Word } from './words'
 import { answer, load, newCard, save, MIN, DAY, type Store } from './srs'
 import { Grid } from './Grid'
@@ -140,14 +140,18 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   if (phase.kind === 'kana') {
     const k = phase.chars[phase.i]
     const reading = BASE[k]?.[0]
+    const advance = () => {
+      const i = phase.i + 1
+      setPhase(i < phase.chars.length ? { ...phase, i } : { kind: 'quiz', word: phase.word, first: true })
+    }
     return (
       <main className="study">
         <div className="label">new kana</div>
         <div className="word">{k}</div>
-        <div className="reading">{reading ?? ' '}</div>
-        {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span></div>}
+        {reading && <div className="reading">{reading}</div>}
+        {ORIGIN[k] && <div className="sub">from kanji <span className="origin">{ORIGIN[k]}</span> {ORIGIN_MEANING[ORIGIN[k]]}</div>}
         {NOTE[k] && <div className="sub">{NOTE[k]}</div>}
-        <div className="hint">enter</div>
+        <button className="next" onClick={advance}>next ↵</button>
       </main>
     )
   }
@@ -186,10 +190,13 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
       </div>
       {first && w.note && <p className="sub note">{w.note}</p>}
       {ok
-        ? (first && w.note) && <div className="hint">enter</div>
+        ? (first && w.note) && <button className="next" onClick={next}>next ↵</button>
         : <>
             <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} placeholder="type it" />
-            <div className="hint">esc if it was a typo</div>
+            <button className="hint" onClick={() => {
+              commit(answer(phase.before, w.kana, t, true, null, Date.now()))
+              next()
+            }}>it was a typo (esc)</button>
           </>}
     </main>
   )

@@ -50,7 +50,9 @@ nav button.on { color: var(--ink); }
 .answer.shake { animation: shake .3s; border-color: var(--bad); }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 .answer::placeholder { color: var(--faint); font-size: 18px; }
-.hint { font-size: 12px; color: var(--faint); letter-spacing: .05em; }
+.hint { font-size: 13px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.next { margin-top: 12px; padding: 8px 22px; border: 1px solid var(--muted); border-radius: 999px; font-size: 15px; }
+.next:hover { border-color: var(--ink); }
 
 /* grid */
 .grid-page { display: grid; grid-template-columns: auto 1fr; gap: 64px; padding: 24px 0 64px; }
