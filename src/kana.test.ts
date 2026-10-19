@@ -5,8 +5,8 @@ import { WORDS, NEW_CHARS, toks } from './words'
 test('every word accepts its own Polish and Hepburn reading', () => {
   for (const w of WORDS) {
     const t = toks(w)
-    expect(match(t, normalize(display(t, true))).ok, `${w.kana} pl ${display(t)}`).toBe(true)
-    expect(match(t, normalize(display(t, false))).ok, `${w.kana} hep ${display(t, false)}`).toBe(true)
+    expect(match(t, normalize(display(t))).ok, `${w.kana} pl ${display(t)}`).toBe(true)
+    expect(match(t, normalize(display(t, 'hep'))).ok, `${w.kana} hep ${display(t, 'hep')}`).toBe(true)
   }
 })
 
@@ -37,7 +37,16 @@ test('align marks only the misread kana', () => {
   expect(a('ねこ', 'reko')).toBe('-re +ko')
   expect(a('さくら', 'sakira')).toBe('+sa -ki +ra')
   expect(a('とうきょう', 'tokio')).toBe('+to + +kio +')
-  expect(a('こんにちは', 'konnichiwa', { 4: ['wa', 'wa', 'ha'] })).toBe('+ko +n +ni +chi +wa')
+  expect(a('こんにちは', 'konnichiwa', { 4: ['ła', 'wa', 'ha'] })).toBe('+ko +n +ni +chi +wa')
   expect(a('やま', 'ja')).toBe('+ja -')
   expect(a('やま', 'jamaa')).toBe('+ja -maa')
+})
+
+test('IPA', () => {
+  const ipa = (k: string) => display(tokenize(k), 'ipa')
+  expect(ipa('とうきょう')).toBe('toːkʲoː')
+  expect(ipa('さんぽ')).toBe('sampo')
+  expect(ipa('まっちゃ')).toBe('mattɕa')
+  expect(ipa('おんせん')).toBe('onseɴ')
+  expect(display(tokenize('かわ'))).toBe('kała')
 })

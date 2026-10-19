@@ -24,6 +24,11 @@ nav { display: flex; gap: 20px; }
 nav button { color: var(--muted); font-size: 14px; }
 nav button.on { color: var(--ink); }
 .due { margin-left: auto; font-size: 14px; color: var(--muted); }
+.scripts { margin-left: 24px; display: flex; gap: 12px; font-size: 13px; }
+.due + .scripts { margin-left: 24px; }
+header > nav + .scripts { margin-left: auto; }
+.scripts button { color: var(--muted); }
+.scripts button.on { color: var(--ink); }
 
 /* study: one column, one focal point */
 .study { display: flex; flex-direction: column; align-items: center; gap: 18px; padding-top: 14vh; }

@@ -99,7 +99,7 @@ export const WORDS: Word[] = [
   { kana: 'ありがとう', en: 'thank you' },
   { kana: 'すみません', en: 'excuse me; sorry' },
   { kana: 'いただきます', en: '(said before eating)', note: 'Literally "I humbly receive".' },
-  { kana: 'こんにちは', en: 'hello', read: { 4: ['wa', 'wa', 'ha'] }, note: 'The final は is the topic particle, read wa: "as for today…".' },
+  { kana: 'こんにちは', en: 'hello', read: { 4: ['ła', 'wa', 'ha'] }, note: 'The final は is the topic particle, read wa: "as for today…".' },
   { kana: 'わびさび', kanji: '侘寂', en: 'wabi-sabi', note: 'Beauty in the imperfect, impermanent and incomplete.' },
   { kana: 'いちご いちえ', kanji: '一期一会', en: 'one time, one meeting', note: 'A tea-ceremony idea: this moment will never happen again.' },
 ]

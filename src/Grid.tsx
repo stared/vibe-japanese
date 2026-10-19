@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { BASE, GRID, GRID_VOICED, VOWELS, YOON_BASES, YOON_SMALL } from './kana'
-import { ORIGIN, NOTE } from './kanaInfo'
+import { GRID, GRID_VOICED, VOWELS, YOON_BASES, YOON_SMALL } from './kana'
+import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, toks } from './words'
 import type { Store } from './srs'
+import { useScript } from './script'
 
 const TABLES = [
   { head: VOWELS, rows: GRID.map(r => ({ c: r.c, cells: [...r.cells] })), note: 'Consonant + vowel. Irregular: si, ci, cu, fu.' },
@@ -46,13 +47,14 @@ export function Grid({ store }: { store: Store }) {
 }
 
 function Detail({ k, store }: { k: string; store: Store }) {
+  const sc = useScript()
   const t = toks({ kana: k, en: '' })[0]
   const words = WORDS.filter(w => store.cards[w.kana] && toks(w).some(x => x.kana === k))
   return (
     <>
       <div className="detail-kana">{k}</div>
-      <div className="reading">{BASE[k]?.[0] ?? t.pl}</div>
-      {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span></div>}
+      <div className="reading">{t[sc]}</div>
+      {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
       {NOTE[k] && <p className="sub">{NOTE[k]}</p>}
       <ul className="mini-words">
         {words.map(w => <li key={w.kana}><span className="jp">{w.kana}</span> {w.en}</li>)}

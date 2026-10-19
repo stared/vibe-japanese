@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { BASE, align, match, misread, normalize, type Seg, type Tok } from './kana'
+import { BASE, SCRIPTS, align, match, misread, normalize, tokenize, type Script, type Seg, type Tok } from './kana'
+import { ScriptCtx, loadScript, saveScript, useScript } from './script'
 import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, NEW_CHARS, toks, type Word } from './words'
 import { answer, load, newCard, save, MIN, DAY, type Store } from './srs'
@@ -12,6 +13,8 @@ export default function App() {
   const [store, setStore] = useState<Store>(load)
   const [tab, setTab] = useState<Tab>('study')
   const [now, setNow] = useState(Date.now())
+  const [script, setScript] = useState<Script>(loadScript)
+  useEffect(() => saveScript(script), [script])
   useEffect(() => save(store), [store])
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 10_000)
@@ -21,6 +24,7 @@ export default function App() {
   const due = Object.values(store.cards).filter(c => c.due <= now).length
 
   return (
+    <ScriptCtx.Provider value={script}>
     <div className="app">
       <header>
         <nav>
@@ -29,11 +33,17 @@ export default function App() {
           ))}
         </nav>
         {due > 0 && <span className="due">{due} due</span>}
+        <span className="scripts">
+          {SCRIPTS.map(sc => (
+            <button key={sc.id} className={script === sc.id ? 'on' : ''} onMouseDown={e => e.preventDefault()} onClick={() => setScript(sc.id)}>{sc.label}</button>
+          ))}
+        </span>
       </header>
       {tab === 'study' && <Study store={store} setStore={setStore} now={now} />}
       {tab === 'grid' && <Grid store={store} />}
       {tab === 'words' && <WordList store={store} onReset={() => setStore({ cards: {}, kana: {}, log: [] })} />}
     </div>
+    </ScriptCtx.Provider>
   )
 }
 
@@ -64,6 +74,7 @@ export function speak(text: string) {
 }
 
 function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) => void; now: number }) {
+  const sc = useScript()
   const [phase, setPhase] = useState<Phase>(() => pick(store, Date.now(), null))
   const [input, setInput] = useState('')
   const [shake, setShake] = useState(0)
@@ -139,7 +150,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
 
   if (phase.kind === 'kana') {
     const k = phase.chars[phase.i]
-    const reading = BASE[k]?.[0]
+    const reading = BASE[k] && tokenize(k)[0][sc]
     const advance = () => {
       const i = phase.i + 1
       setPhase(i < phase.chars.length ? { ...phase, i } : { kind: 'quiz', word: phase.word, first: true })
@@ -184,17 +195,17 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
           return (
             <span key={i} className={'tok' + (x.space ? ' gap' : '') + (sg && !sg.ok ? ' bad' : '')}>
               <span>{x.gem ? 'っ' : ''}{x.kana}</span>
-              {sg && <span className={'typed ' + (sg.ok ? 'good' : 'bad')}>{sg.text || '·'}</span>}
-              {(!sg || !sg.ok) && <span className="r">{x.pl}</span>}
+              {sg && <span className={'typed ' + (sg.ok ? 'good' : 'bad')}>{sg.ok ? x[sc] : sg.text || '·'}</span>}
+              {(!sg || !sg.ok) && <span className="r">{x[sc]}</span>}
             </span>
           )
         })}
       </div>
       {confusions.map(([x, c]) => (
         <div key={x.kana} className="confusion">
-          <span className="jp">{x.kana}</span> {x.pl}
+          <span className="jp">{x.kana}</span> {x[sc]}
           <span className="vs">≠</span>
-          <span className="jp">{c}</span> {BASE[c][0]}
+          <span className="jp">{c}</span> {tokenize(c)[0][sc]}
         </div>
       ))}
       <div className="meaning">

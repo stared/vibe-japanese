@@ -1,4 +1,4 @@
-// Readings: [Polish, Hepburn, ...other accepted spellings]
+// Readings: [Polish (phonetic), Hepburn, ...other accepted spellings]
 export const BASE: Record<string, string[]> = {
   あ: ['a'], い: ['i'], う: ['u'], え: ['e'], お: ['o'],
   か: ['ka'], き: ['ki'], く: ['ku'], け: ['ke'], こ: ['ko'],
@@ -9,7 +9,7 @@ export const BASE: Record<string, string[]> = {
   ま: ['ma'], み: ['mi'], む: ['mu'], め: ['me'], も: ['mo'],
   や: ['ja', 'ya'], ゆ: ['ju', 'yu'], よ: ['jo', 'yo'],
   ら: ['ra'], り: ['ri'], る: ['ru'], れ: ['re'], ろ: ['ro'],
-  わ: ['wa'], を: ['o', 'o', 'wo'], ん: ['n'],
+  わ: ['ła', 'wa', 'la'], を: ['o', 'o', 'wo'], ん: ['n'],
   が: ['ga'], ぎ: ['gi'], ぐ: ['gu'], げ: ['ge'], ご: ['go'],
   ざ: ['za'], じ: ['dzi', 'ji', 'zi'], ず: ['zu', 'zu', 'dzu'], ぜ: ['ze'], ぞ: ['zo'],
   だ: ['da'], ぢ: ['dzi', 'ji', 'di'], づ: ['dzu', 'zu', 'du'], で: ['de'], ど: ['do'],
@@ -17,7 +17,33 @@ export const BASE: Record<string, string[]> = {
   ぱ: ['pa'], ぴ: ['pi'], ぷ: ['pu'], ぺ: ['pe'], ぽ: ['po'],
 }
 
+export const IPA: Record<string, string> = {
+  あ: 'a', い: 'i', う: 'ɯ', え: 'e', お: 'o',
+  か: 'ka', き: 'kʲi', く: 'kɯ', け: 'ke', こ: 'ko',
+  さ: 'sa', し: 'ɕi', す: 'sɯ', せ: 'se', そ: 'so',
+  た: 'ta', ち: 'tɕi', つ: 'tsɯ', て: 'te', と: 'to',
+  な: 'na', に: 'ɲi', ぬ: 'nɯ', ね: 'ne', の: 'no',
+  は: 'ha', ひ: 'çi', ふ: 'ɸɯ', へ: 'he', ほ: 'ho',
+  ま: 'ma', み: 'mʲi', む: 'mɯ', め: 'me', も: 'mo',
+  や: 'ja', ゆ: 'jɯ', よ: 'jo',
+  ら: 'ɾa', り: 'ɾʲi', る: 'ɾɯ', れ: 'ɾe', ろ: 'ɾo',
+  わ: 'ɰa', を: 'o', ん: 'ɴ',
+  が: 'ɡa', ぎ: 'ɡʲi', ぐ: 'ɡɯ', げ: 'ɡe', ご: 'ɡo',
+  ざ: 'za', じ: 'dʑi', ず: 'dzɯ', ぜ: 'ze', ぞ: 'zo',
+  だ: 'da', ぢ: 'dʑi', づ: 'dzɯ', で: 'de', ど: 'do',
+  ば: 'ba', び: 'bʲi', ぶ: 'bɯ', べ: 'be', ぼ: 'bo',
+  ぱ: 'pa', ぴ: 'pʲi', ぷ: 'pɯ', ぺ: 'pe', ぽ: 'po',
+}
+
+export type Script = 'pl' | 'hep' | 'ipa'
+export const SCRIPTS: { id: Script; label: string }[] = [
+  { id: 'pl', label: 'polski' },
+  { id: 'hep', label: 'Hepburn' },
+  { id: 'ipa', label: 'IPA' },
+]
+
 const SMALL: Record<string, string> = { ゃ: 'a', ゅ: 'u', ょ: 'o' }
+const IPA_V: Record<string, string> = { a: 'a', u: 'ɯ', o: 'o' }
 
 // き + ゃ: Polish keeps the i (kia, sia, cia, dzia); Hepburn uses y or drops it (kya, sha, cha, ja)
 function combo(base: string[], v: string): string[] {
@@ -36,7 +62,7 @@ const hepCombo = (r: string, v: string) => {
   return ['sh', 'ch', 'j'].includes(stem) ? stem + v : stem + 'y' + v
 }
 
-export type Tok = { kana: string; gem: boolean; space: boolean; pl: string; hep: string; readings: string[] }
+export type Tok = { kana: string; gem: boolean; space: boolean; pl: string; hep: string; ipa: string; readings: string[] }
 
 export function tokenize(s: string, override?: Record<number, string[]>): Tok[] {
   const units: { kana: string; gem: boolean; space: boolean }[] = []
@@ -54,13 +80,16 @@ export function tokenize(s: string, override?: Record<number, string[]>): Tok[] 
     if (!rs) throw new Error(`unknown kana ${u.kana} in ${s}`)
     let pl = rs[0]
     let hep = override?.[i]?.[1] ?? (u.kana.length === 1 ? (base[1] ?? base[0]) : hepCombo(base[1] ?? base[0], SMALL[u.kana[1]]))
+    const hepToKana = (h: string) => Object.keys(BASE).find(k => (BASE[k][1] ?? BASE[k][0]) === h)!
+    let ipa = override?.[i] ? IPA[hepToKana(hep)] : u.kana.length === 1 ? IPA[u.kana] : IPA[u.kana[0]].slice(0, -1) + IPA_V[SMALL[u.kana[1]]]
     rs = [...new Set(rs)]
     if (u.gem) {
+      ipa = (ipa[0] === 't' ? 't' : ipa[0]) + ipa
       rs = rs.flatMap(r => [r[0] + r, ...(r[0] === 'c' ? ['t' + r] : [])])
       pl = pl[0] + pl
       hep = (hep[0] === 'c' ? 't' : hep[0]) + hep
     }
-    return { ...u, pl, hep, readings: rs }
+    return { ...u, pl, hep, ipa, readings: rs }
   })
   toks.forEach((t, i) => {
     const prev = toks[i - 1]?.pl ?? ''
@@ -68,15 +97,21 @@ export function tokenize(s: string, override?: Record<number, string[]>): Tok[] 
     if (t.kana === 'ん') {
       t.readings = ['n', 'nn', ...(/^[pbm]/.test(next) ? ['m'] : [])]
       t.pl = /^[pbm]/.test(next) ? 'm' : /^[aeiouj]/.test(next) ? "n'" : 'n'
+      const ni = toks[i + 1]?.ipa ?? ''
+      t.ipa = /^[pbm]/.test(ni) ? 'm' : /^[kɡ]/.test(ni) ? 'ŋ' : /^[ntdɾzsɕɲ]/.test(ni) ? 'n' : 'ɴ'
     }
     // long vowels: とう = tō, so the う may be dropped (tokyo, tōkyō)
     if ((t.kana === 'う' && /[ou]$/.test(prev)) || (t.kana === 'お' && /o$/.test(prev)) || (t.kana === 'い' && /e$/.test(prev)))
+    {
       t.readings.push('')
+      if (t.kana !== 'い') t.ipa = 'ː'
+    }
   })
   return toks
 }
 
-export const display = (toks: Tok[], pl = true) => toks.map(t => (t.space ? ' ' : '') + (pl ? t.pl : t.hep)).join('')
+export const show = (t: Tok, sc: Script) => t[sc]
+export const display = (toks: Tok[], sc: Script = 'pl') => toks.map(t => (t.space ? ' ' : '') + t[sc]).join('')
 
 export function normalize(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[\s'’\-.]/g, '')
