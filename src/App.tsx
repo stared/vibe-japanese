@@ -100,6 +100,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   const storeRef = useRef(store)
   storeRef.current = store
   const last = useRef<string | null>(null)
+  const shownAt = useRef(0)
 
   const commit = (s: Store) => {
     storeRef.current = s
@@ -129,6 +130,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     }
     last.current = w.kana
     setInput('')
+    shownAt.current = Date.now()
     setPhase({ kind: 'reveal', word: w, first, drill: isDrill, ok: wrong.length === 0, segs, before })
     speak(w.kana)
   }
@@ -148,7 +150,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         e.preventDefault()
         const i = phase.i + 1
         setPhase(i < phase.chars.length ? { ...phase, i } : { kind: 'quiz', word: phase.word, first: true })
-      } else if (phase.kind === 'reveal' && phase.ok && e.key === 'Enter') {
+      } else if (phase.kind === 'reveal' && phase.ok && e.key === 'Enter' && Date.now() - shownAt.current > 1000) {
         e.preventDefault()
         next()
       } else if (phase.kind === 'reveal' && !phase.ok && e.key === 'Escape') {
