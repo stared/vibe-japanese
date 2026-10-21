@@ -41,6 +41,7 @@ for (const step of JSON.parse(process.env.STEPS ?? '[]')) {
   if (step.key) await key(step.key)
   if (step.type !== undefined) await type(step.type)
   if (step.click) await page.click(step.click)
+  if (step.hover) await page.hover(step.hover)
   if (step.log) console.log(await page.evaluate(() => [document.activeElement?.tagName, document.querySelector('main')?.innerText]))
   if (step.wait) await new Promise(r => setTimeout(r, step.wait))
   if (step.shot) await shot(step.shot)

@@ -229,7 +229,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
           const sg = segs?.[i]
           return (
             <span key={i} className={'tok' + (x.space ? ' gap' : '') + (sg && !sg.ok ? ' bad' : '')}>
-              <span>{x.gem ? 'っ' : ''}{x.kana}</span>
+              <span>{x.gem ? 'っ' : ''}{[...x.kana].map((c, j) => <HoverKana key={j} k={c} />)}</span>
               {sg && <span className={'typed ' + (sg.ok ? 'good' : 'bad')}>{sg.ok ? x[sc] : sg.text || '·'}</span>}
               {(!sg || !sg.ok) && <span className="r">{x[sc]}</span>}
             </span>
@@ -277,12 +277,24 @@ export function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { 
   )
 }
 
+/** A kana that shows its picture while hovered. */
+function HoverKana({ k }: { k: string }) {
+  const [on, setOn] = useState(false)
+  if (!PICS[k]) return <>{k}</>
+  return (
+    <span className={'hk' + (on ? ' on' : '')} onMouseEnter={() => setOn(true)} onMouseLeave={() => setOn(false)}>
+      {k}
+      {on && <><KanaPic k={k} size={132} /><span className="hk-hook">{PICS[k].hook}</span></>}
+    </span>
+  )
+}
+
 function KanaWord({ toks: t }: { toks: Tok[] }) {
   return (
     <div className="word">
       {t.map((x, i) => (
         <span key={i} className={'tok' + (x.space ? ' gap' : '')}>
-          <span>{x.gem ? 'っ' : ''}{x.kana}</span>
+          <span>{x.gem ? 'っ' : ''}{[...x.kana].map((c, j) => <HoverKana key={j} k={c} />)}</span>
         </span>
       ))}
     </div>
