@@ -24,6 +24,8 @@ export const PICS: Record<string, Pic> = {
   お: { hook: 'an o inside', clip: 'M36 55H100V100H36Z' },
   う: { hook: 'a U-turn sign', over: '<path class="pa" d="M32 96 L40 85.5 L45.5 94.5Z"/>' },
   ぬ: { hook: 'nudle in a bowl', under: '<path class="pb" d="M10 72 H92 C90 92 70 100 51 100 C32 100 12 92 10 72Z"/>' },
+  て: { hook: 'a T: in Polish the letter is called “te”', clip: 'M0 0H100V44H62V72H30V52H0Z' },
+  ね: { hook: 'a cursive “ne”', clip: 'M31.5 0H100V100H31.5Z' },
 }
 
 const glyph = (k: string, attrs = '') =>
