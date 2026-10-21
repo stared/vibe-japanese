@@ -4,6 +4,7 @@ import { record, logRetype, solid, type Store } from './srs'
 import { useScript } from './script'
 import { Hook, KanaPic, PICS } from './pics'
 import { kanaHistories, recentScore } from './history'
+import { fade, recent, weighted } from './recency'
 import { AnswerInput, speak } from './App'
 
 // わ, を and ん share one row
@@ -49,7 +50,6 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
   const [shake, setShake] = useState(0)
   const storeRef = useRef(store)
   storeRef.current = store
-  const last = useRef<string | null>(null)
   const shownAt = useRef(0)
   const commit = (s: Store) => {
     storeRef.current = s
@@ -64,10 +64,10 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     setShake(0)
     const open = kana.filter(k => (st[k] ?? 0) < GOAL)
     if (!open.length) return setStep({ kind: 'done' })
-    const fromOld = old.filter(k => k !== last.current)
-    const pool = fromOld.length && Math.random() < OLD_SHARE ? fromOld : open.filter(k => k !== last.current).length ? open.filter(k => k !== last.current) : open
-    const k = pool[Math.floor(Math.random() * pool.length)]
-    last.current = k
+    // unfinished kana first; finished ones and earlier rows as spacers, so nothing comes right back
+    const r = recent(storeRef.current.log)
+    const oldW = (open.length * OLD_SHARE) / (1 - OLD_SHARE) / old.length
+    const k = weighted([...kana, ...old], k => fade(r.kana.get(k)) * (open.includes(k) ? 1 : kana.includes(k) ? 0.3 : oldW)) ?? open[0]
     setStep({ kind: 'quiz', k })
   }
 

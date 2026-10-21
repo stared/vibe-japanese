@@ -8,6 +8,7 @@ import { Grid } from './Grid'
 import { WordList } from './WordList'
 import { Rows } from './Rows'
 import { Hook, KanaPic, PICS } from './pics'
+import { fade, recent, weighted, type Recent } from './recency'
 
 type Tab = 'study' | 'rows' | 'grid' | 'words'
 
@@ -58,34 +59,34 @@ type Phase =
   | ({ kind: 'reveal'; word: Word; first: boolean; drill?: boolean } & Result)
   | { kind: 'idle' }
 
-function pick(s: Store, now: number, last: string | null): Phase {
+function pick(s: Store, now: number): Phase {
+  const r = recent(s.log)
   const due = Object.values(s.cards).filter(c => c.due <= now).sort((a, b) => a.due - b.due)
-  const c = due[0]?.id === last && due.length > 1 ? due[1] : due[0]
-  if (c) return { kind: 'quiz', word: WORDS.find(w => w.kana === c.id)!, first: false }
-  const d = drillItem(s, last)
+  const c = due.find(c => Math.random() < fade(r.ids.get(c.id)))
+  if (c) return quiz(c.id)
+  const d = drillItem(s, r)
   if (d) return { kind: 'quiz', word: d, first: false, drill: true }
   const fresh = WORDS.find(w => !s.cards[w.kana])
-  if (!fresh) return { kind: 'idle' }
+  if (!fresh) return due.length ? quiz(due[0].id) : { kind: 'idle' }
   // kana already met (e.g. in rows) need no introduction
   const chars = NEW_CHARS.get(fresh.kana)!.filter(c => !s.kana[c])
   return chars.length ? { kind: 'kana', word: fresh, chars, i: 0 } : { kind: 'quiz', word: fresh, first: true }
 }
+const quiz = (id: string): Phase => ({ kind: 'quiz', word: WORDS.find(w => w.kana === id)!, first: false })
 
 /** Before any new kana, drill the known ones until solid: real words first, the bare kana for variety. */
-function drillItem(s: Store, last: string | null): Word | null {
+function drillItem(s: Store, r: Recent): Word | null {
   const learned = WORDS.filter(w => s.cards[w.kana])
   const known = [...new Set(learned.flatMap(w => toks(w).map(t => t.kana)))]
   const weak = known.filter(k => !solid(s.kana[k]))
-  if (!weak.length) return null
-  const n = (k: string) => s.kana[k]?.n ?? 0
-  weak.sort((a, b) => n(a) - n(b))
-  const k = weak[Math.floor(Math.random() * Math.min(2, weak.length))]
+  // the least practised first, but not one just asked
+  const k = weighted(weak, k => fade(r.kana.get(k)) / (1 + (s.kana[k]?.n ?? 0)))
+  if (!k) return null
   // a third of the time, any known word: keeps older kana in the mix
   const options: Word[] = Math.random() < 1 / 3 && learned.length > 2
     ? learned
     : [...learned.filter(w => toks(w).some(t => t.kana === k)), { kana: k, en: '' }]
-  const pool = options.filter(w => w.kana !== last)
-  return pool[Math.floor(Math.random() * pool.length)] ?? options[0]
+  return weighted(options, w => fade(r.ids.get(w.kana))) ?? null
 }
 
 export function speak(text: string) {
@@ -99,12 +100,11 @@ export function speak(text: string) {
 
 function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) => void; now: number }) {
   const sc = useScript()
-  const [phase, setPhase] = useState<Phase>(() => pick(store, Date.now(), null))
+  const [phase, setPhase] = useState<Phase>(() => pick(store, Date.now()))
   const [input, setInput] = useState('')
   const [shake, setShake] = useState(0)
   const storeRef = useRef(store)
   storeRef.current = store
-  const last = useRef<string | null>(null)
   const shownAt = useRef(0)
   const hinted = useRef<number[]>([])
 
@@ -116,12 +116,12 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     hinted.current = []
     setInput('')
     setShake(0)
-    setPhase(pick(storeRef.current, Date.now(), last.current))
+    setPhase(pick(storeRef.current, Date.now()))
   }
 
   // while idle, wake up when something becomes due
   useEffect(() => {
-    if (phase.kind === 'idle') setPhase(pick(storeRef.current, now, last.current))
+    if (phase.kind === 'idle') setPhase(pick(storeRef.current, now))
   }, [now])
 
   const submit = (w: Word, first: boolean, isDrill = false) => {
@@ -136,7 +136,6 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     if (!isDrill && !before.cards[w.kana]) before = { ...before, cards: { ...before.cards, [w.kana]: newCard(w.kana, Date.now()) } }
     const attempt: Attempt = { typed: input, kind: isDrill ? 'drill' : first ? 'new' : 'review', hint }
     commit(record(before, w.kana, t, wrong, Date.now(), attempt))
-    last.current = w.kana
     setInput('')
     shownAt.current = Date.now()
     setPhase({ kind: 'reveal', word: w, first, drill: isDrill, ok: wrong.length === 0, segs, before, attempt })
