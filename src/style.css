@@ -110,6 +110,7 @@ header > nav + .scripts { margin-left: auto; }
 .kana-pic .py { fill: color-mix(in oklab, #e8b830 40%, var(--paper)); }
 .kana-pic .pw { fill: color-mix(in oklab, #4a90c0 25%, var(--paper)); }
 .kana-pic .pw2 { fill: color-mix(in oklab, #4a90c0 45%, var(--paper)); }
+.kana-pic .ps { fill: none; stroke: var(--accent); stroke-linecap: round; stroke-linejoin: round; }
 .kana-pic .pb { fill: color-mix(in oklab, #8a6a40 35%, var(--paper)); }
 .row-progress { font: 20px var(--jp); letter-spacing: .4em; margin-bottom: -8px; }
 .word.good { color: var(--good); }

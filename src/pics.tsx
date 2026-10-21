@@ -26,6 +26,16 @@ export const PICS: Record<string, Pic> = {
   ぬ: { hook: 'nudle in a bowl', under: '<path class="pb" d="M10 72 H92 C90 92 70 100 51 100 C32 100 12 92 10 72Z"/>' },
   て: { hook: 'a T: in Polish the letter is called “te”', clip: 'M0 0H100V44H62V72H30V52H0Z' },
   ね: { hook: 'a cursive “ne”', clip: 'M31.5 0H100V100H31.5Z' },
+  ち: { hook: 'a chick: cip-cip', under: '<path class="py" d="M37 72 Q48 61 62 60 Q74 62 75 71 Q72 82 44 88 Q36 84 37 72Z"/>', over: '<circle class="pa" cx="66" cy="66" r="2.6"/><path class="pa" d="M75 66 L84 69 L75 73Z"/><path class="ps" stroke-width="2" d="M50 89 V95 M56 88 V94"/>' },
+  た: { hook: 't + a', over: '<path class="ps" stroke-width="5" d="M77 49 Q81 62 79 85"/><path class="ps" stroke-width="5" d="M79 65 Q60 60 51 72"/>' },
+  と: { hook: 't + o', over: '<path class="ps" stroke-width="4" d="M31 40 L50 37"/><path class="ps" stroke-width="4" d="M71 44 Q84 56 80 72 Q78 80 72 82"/>' },
+  は: { hook: 'H + a', clip: 'M0 0H38V100H0Z M38 35H56V47H38Z M56 0H67V66H56Z' },
+  ほ: { hook: 'H + o', clip: 'M17 23H36V92H17Z M36 42H58V55H36Z M58 38H70V70H58Z M36 70H62V90H36Z' },
+  け: { hook: 'a kebab on its spit', under: '<path class="pb" d="M53 26Q65 22 77 26L72 62Q66 72 60 62Z"/><path fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" d="M55 33Q65 31 76 33M56 52Q65 50 74 52M57 58Q65 57 73 58"/>' },
+  こ: { hook: 'a hen calling ko-ko', under: '<circle class="pt" cx="18" cy="53" r="17"/><path class="pa" d="M8 39Q6 30 12 33Q14 26 19 33Q23 27 26 37Z M27 66Q30 76 25 75Q22 72 24 66Z"/>', over: '<circle class="pa" cx="17" cy="47" r="2.3"/>' },
+  む: { hook: 'a cow: muu', under: '<path class="pt" d="M41 72Q55 66 69 72L69 82Q60 86 42 84Z"/>', over: '<circle class="pa" cx="48" cy="60" r="2.3"/><circle class="pa" cx="62" cy="60" r="2.3"/><ellipse class="pa" cx="49" cy="78" rx="2.2" ry="1.5"/><ellipse class="pa" cx="61" cy="78" rx="2.2" ry="1.5"/>' },
+  ろ: { hook: 'a winding road', over: '<path fill="none" stroke="#fff" stroke-width="1.3" stroke-dasharray="3 2.5" d="M32 31.5 L56 29.5 L26 70 M31 65 Q45 54 57 53 Q74 56 75 68 Q73 82 55 86 L39 88"/>' },
+  わ: { hook: 'a watermelon slice', under: '<path class="pa" style="opacity:.55" d="M37 58 Q50 45 62 46 Q77 50 77 63 Q75 76 52 87 L37 87Z"/><path fill="none" stroke="#5a9e44" stroke-width="2.2" d="M38 57 Q50 45 61 46.5 Q75.5 50 75.5 63 Q74 76 51 86"/>', over: '<g fill="#5a2418"><ellipse cx="50" cy="60" rx="1" ry="1.7"/><ellipse cx="61" cy="58" rx="1" ry="1.7"/><ellipse cx="57" cy="69" rx="1" ry="1.7"/><ellipse cx="46" cy="72" rx="1" ry="1.7"/><ellipse cx="67" cy="68" rx="1" ry="1.7"/><ellipse cx="52" cy="80" rx="1" ry="1.7"/></g>' },
 }
 
 const glyph = (k: string, attrs = '') =>
