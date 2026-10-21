@@ -2,9 +2,11 @@ import type { LogEntry } from './srs'
 import { WORDS, toks } from './words'
 
 // Asking the same thing again right away tests short-term memory, not reading.
-// Pickers weigh recent items down, softly: weight by how many answers ago it was asked (1, 2, 3, 4).
-const FADE = [0, 0.1, 0.35, 0.7]
-export const fade = (ago?: number) => (ago === undefined ? 1 : FADE[ago - 1] ?? 1)
+// Pickers weigh recent items down, softly: asked n answers ago, weight 1 - exp(-(n-1)/TAU),
+// so 0 right after, then 0.28, 0.49, 0.63, 0.74... back towards 1.
+const TAU = 3
+const WINDOW = 15 // beyond this the weight is > 0.99: treat as never asked
+export const fade = (ago?: number) => (ago === undefined ? 1 : 1 - Math.exp(-(ago - 1) / TAU))
 
 const kanaOf = (id: string) => toks(WORDS.find(w => w.kana === id) ?? { kana: id, en: '' }).map(t => t.kana)
 
@@ -13,7 +15,7 @@ export function recent(log: LogEntry[]) {
   const ids = new Map<string, number>()
   const kana = new Map<string, number>()
   let ago = 0
-  for (let i = log.length - 1; i >= 0 && ago < FADE.length; i--) {
+  for (let i = log.length - 1; i >= 0 && ago < WINDOW; i--) {
     if (log[i].kind === 'retype') continue
     ago++
     const id = log[i].id
