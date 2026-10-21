@@ -7,7 +7,7 @@ import { load, logRetype, newCard, record, save, solid, MIN, DAY, type Attempt, 
 import { Grid } from './Grid'
 import { WordList } from './WordList'
 import { Rows } from './Rows'
-import { KanaPic, PICS } from './pics'
+import { Hook, KanaPic, PICS } from './pics'
 
 type Tab = 'study' | 'rows' | 'grid' | 'words'
 
@@ -191,7 +191,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
       <main className="study">
         {PICS[k] ? <KanaPic k={k} size={150} /> : <div className="word">{k}</div>}
         {reading && <div className="reading">{reading}</div>}
-        {PICS[k] && <div className="hook">{PICS[k].hook}</div>}
+        <Hook k={k} />
         {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
         {NOTE[k] && <div className="sub">{NOTE[k]}</div>}
         <button className="next" onClick={advance}>next</button>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { GRID, GRID_VOICED, match, misread, normalize, tokenize } from './kana'
 import { record, logRetype, solid, type Store } from './srs'
 import { useScript } from './script'
-import { KanaPic, PICS } from './pics'
+import { Hook, KanaPic, PICS } from './pics'
 import { kanaHistories, recentScore } from './history'
 import { AnswerInput, speak } from './App'
 
@@ -102,7 +102,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
   }, [step, streak])
 
   const read = (k: string) => tokenize(k)[0][sc]
-  const hook = (k: string) => PICS[k] && <div className="hook">{PICS[k].hook}</div>
+  const hook = (k: string) => <Hook k={k} />
 
   if (step.kind === 'intro') {
     return (

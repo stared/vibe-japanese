@@ -5,7 +5,7 @@ import { WORDS, toks } from './words'
 import type { Store } from './srs'
 import { useScript } from './script'
 import { Dots, kanaHistories, recentScore } from './history'
-import { KanaPic, PICS } from './pics'
+import { Hook, KanaPic, PICS } from './pics'
 
 const TABLES = [
   { head: VOWELS, rows: GRID.map(r => ({ c: r.c, cells: [...r.cells] })), note: 'Consonant + vowel. Irregular: si, ci, cu, fu.' },
@@ -65,7 +65,7 @@ function Detail({ k, store, hist }: { k: string; store: Store; hist: boolean[] }
         {words.map(w => <li key={w.kana}><span className="jp">{w.kana}</span> {w.en}</li>)}
       </ul>
       <Dots hist={hist} />
-      {PICS[k] && <><KanaPic k={k} size={140} /><div className="hook">{PICS[k].hook}</div></>}
+      {PICS[k] && <><KanaPic k={k} size={140} /><Hook k={k} /></>}
     </>
   )
 }
