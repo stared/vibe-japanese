@@ -289,7 +289,7 @@ function HoverKana({ k, onHint }: { k: string; onHint?: () => void }) {
   return (
     <span className={'hk' + (on ? ' on' : '')} onMouseEnter={() => { setOn(true); onHint?.() }} onMouseLeave={() => setOn(false)}>
       {k}
-      {on && <KanaPic k={k} size={132} />}
+      {on && <KanaPic k={k} size={124} />}
     </span>
   )
 }
