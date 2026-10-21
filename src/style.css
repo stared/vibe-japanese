@@ -6,13 +6,14 @@
   --accent: #c8402f; /* torii vermilion */
   --good: #3e8e5e;
   --bad: #c8402f;
+  --hint: #c9a227;
   --jp: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', system-ui, sans-serif;
   --serif: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif;
   --mono: ui-monospace, 'SF Mono', Menlo, monospace;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --paper: #191816; --ink: #ece8e1; --muted: #7d786f; --faint: #3a3732; --good: #5fb07f; --bad: #e0634f; }
+  :root { --paper: #191816; --ink: #ece8e1; --muted: #7d786f; --faint: #3a3732; --good: #5fb07f; --bad: #e0634f; --hint: #d8b445; }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
@@ -42,6 +43,7 @@ header > nav + .scripts { margin-left: auto; }
 .tok.bad > span:first-child { color: var(--bad); }
 .tok .typed { font: 18px var(--mono); }
 .tok .typed.good { color: var(--good); }
+.tok .typed.hinted, .tok.hinted > span:first-child { color: var(--hint); }
 .tok .typed.bad { color: var(--bad); text-decoration: line-through; }
 .tok.bad .r { color: var(--ink); }
 .reading { font: 28px var(--mono); }

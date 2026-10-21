@@ -8,7 +8,7 @@ export type Card = { id: string; due: number; step: number; ivl: number; ease: n
 export type KStat = { n: number; ema: number }
 export type Kind = 'new' | 'review' | 'drill' | 'retype'
 /** One attempt. id: the word (or bare kana) shown; miss: indices of misread tokens. */
-export type LogEntry = { t: number; id: string; ok: boolean; typed?: string; miss?: number[]; kind?: Kind; typo?: boolean }
+export type LogEntry = { t: number; id: string; ok: boolean; typed?: string; miss?: number[]; kind?: Kind; typo?: boolean; hint?: number[] }
 export type Store = {
   cards: Record<string, Card>
   kana: Record<string, KStat>
@@ -40,13 +40,14 @@ export function schedule(c: Card, ok: boolean, now: number): Card {
   return { ...c, ivl, reps: c.reps + 1, due: now + ivl * DAY - 4 * 3600_000 }
 }
 
-function updateKana(kana: Store['kana'], toks: Tok[], wrong: number[]) {
+function updateKana(kana: Store['kana'], toks: Tok[], wrong: number[], hint: number[] = []) {
   const out = { ...kana }
   const bump = (k: string, hit: boolean) => {
     const s = out[k] ?? { n: 0, ema: 0.5 }
     out[k] = { n: s.n + 1, ema: s.ema * 0.7 + (hit ? 0.3 : 0) }
   }
   toks.forEach((t, i) => {
+    if (hint.includes(i) && !wrong.includes(i)) return // peeked: neither read nor missed
     const hit = !wrong.includes(i)
     bump(t.kana, hit)
     if (t.gem) bump('っ', hit)
@@ -54,15 +55,15 @@ function updateKana(kana: Store['kana'], toks: Tok[], wrong: number[]) {
   return out
 }
 
-export type Attempt = { typed: string; kind: Kind; typo?: boolean }
+export type Attempt = { typed: string; kind: Kind; typo?: boolean; hint?: number[] }
 
 /** Record an answer. Drills move only kana strength; new words and reviews also reschedule. */
 export function record(s: Store, id: string, toks: Tok[], wrong: number[], now: number, a: Attempt): Store {
   const ok = wrong.length === 0
-  const entry: LogEntry = { t: now, id, ok, typed: a.typed, miss: wrong, kind: a.kind, ...(a.typo ? { typo: true } : {}) }
+  const entry: LogEntry = { t: now, id, ok, typed: a.typed, miss: wrong, kind: a.kind, ...(a.typo ? { typo: true } : {}), ...(a.hint?.length ? { hint: a.hint } : {}) }
   return {
     cards: a.kind === 'drill' ? s.cards : { ...s.cards, [id]: schedule(s.cards[id], ok, now) },
-    kana: updateKana(s.kana, toks, wrong),
+    kana: updateKana(s.kana, toks, wrong, a.hint),
     log: [...s.log, entry],
   }
 }

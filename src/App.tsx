@@ -106,12 +106,14 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   storeRef.current = store
   const last = useRef<string | null>(null)
   const shownAt = useRef(0)
+  const hinted = useRef<number[]>([])
 
   const commit = (s: Store) => {
     storeRef.current = s
     setStore(s)
   }
   const next = () => {
+    hinted.current = []
     setInput('')
     setShake(0)
     setPhase(pick(storeRef.current, Date.now(), last.current))
@@ -127,9 +129,12 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     const given = normalize(input)
     const segs = given ? align(t, given) : null
     const wrong = segs ? segs.flatMap((sg, i) => (sg.ok ? [] : [i])) : t.map((_, i) => i)
+    // kana peeked at by hovering: shown as hinted, not scored
+    const hint = [...new Set(hinted.current)].filter(i => !wrong.includes(i)).sort((a, b) => a - b)
+    hinted.current = []
     let before = storeRef.current
     if (!isDrill && !before.cards[w.kana]) before = { ...before, cards: { ...before.cards, [w.kana]: newCard(w.kana, Date.now()) } }
-    const attempt: Attempt = { typed: input, kind: isDrill ? 'drill' : first ? 'new' : 'review' }
+    const attempt: Attempt = { typed: input, kind: isDrill ? 'drill' : first ? 'new' : 'review', hint }
     commit(record(before, w.kana, t, wrong, Date.now(), attempt))
     last.current = w.kana
     setInput('')
@@ -200,7 +205,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   if (phase.kind === 'quiz') {
     return (
       <main className="study">
-        <KanaWord toks={t} />
+        <KanaWord toks={t} onHint={i => hinted.current.push(i)} />
         <AnswerInput value={input} onChange={setInput} onEnter={() => submit(w, phase.first, phase.drill)} />
       </main>
     )
@@ -228,9 +233,9 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         {t.map((x, i) => {
           const sg = segs?.[i]
           return (
-            <span key={i} className={'tok' + (x.space ? ' gap' : '') + (sg && !sg.ok ? ' bad' : '')}>
+            <span key={i} className={'tok' + (x.space ? ' gap' : '') + (sg && !sg.ok ? ' bad' : '') + (sg?.ok && !fixed && phase.attempt.hint?.includes(i) ? ' hinted' : '')}>
               <span>{x.gem ? 'っ' : ''}{[...x.kana].map((c, j) => <HoverKana key={j} k={c} />)}</span>
-              {sg && <span className={'typed ' + (sg.ok ? 'good' : 'bad')}>{sg.ok ? x[sc] : sg.text || '·'}</span>}
+              {sg && <span className={'typed ' + (sg.ok ? (phase.attempt.hint?.includes(i) && !fixed ? 'hinted' : 'good') : 'bad')}>{sg.ok ? x[sc] : sg.text || '·'}</span>}
               {(!sg || !sg.ok) && <span className="r">{x[sc]}</span>}
             </span>
           )
@@ -278,23 +283,26 @@ export function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { 
 }
 
 /** A kana that shows its picture while hovered. */
-function HoverKana({ k }: { k: string }) {
+function HoverKana({ k, onHint }: { k: string; onHint?: () => void }) {
+  const sc = useScript()
   const [on, setOn] = useState(false)
-  if (!PICS[k]) return <>{k}</>
+  if (!BASE[k]) return <>{k}</>
+  const pic = PICS[k]
   return (
-    <span className={'hk' + (on ? ' on' : '')} onMouseEnter={() => setOn(true)} onMouseLeave={() => setOn(false)}>
+    <span className={'hk' + (on && pic ? ' on' : '')} onMouseEnter={() => { setOn(true); onHint?.() }} onMouseLeave={() => setOn(false)}>
       {k}
-      {on && <><KanaPic k={k} size={132} /><span className="hk-hook">{PICS[k].hook}</span></>}
+      {on && pic && <KanaPic k={k} size={132} />}
+      {on && <span className="hk-hook">{pic ? `${tokenize(k)[0][sc]} · ${pic.hook}` : tokenize(k)[0][sc]}</span>}
     </span>
   )
 }
 
-function KanaWord({ toks: t }: { toks: Tok[] }) {
+function KanaWord({ toks: t, onHint }: { toks: Tok[]; onHint: (i: number) => void }) {
   return (
     <div className="word">
       {t.map((x, i) => (
         <span key={i} className={'tok' + (x.space ? ' gap' : '')}>
-          <span>{x.gem ? 'っ' : ''}{[...x.kana].map((c, j) => <HoverKana key={j} k={c} />)}</span>
+          <span>{x.gem ? 'っ' : ''}{[...x.kana].map((c, j) => <HoverKana key={j} k={c} onHint={() => onHint(i)} />)}</span>
         </span>
       ))}
     </div>
