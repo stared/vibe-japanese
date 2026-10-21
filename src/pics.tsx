@@ -2,7 +2,7 @@
 // thing, and give the whole syllable. Drawing an object next to a kana doesn't make it one. A picture either recolours part of the kana
 // (clip: the region shown in red) or adds shapes around it, never both.
 // Coordinates are tuned to Klee One at the size below; check visually after any change.
-type Pic = { hook: string; clip?: string; under?: string; over?: string }
+type Pic = { hook: string; clip?: string; cls?: string; under?: string; over?: string }
 
 export const PICS: Record<string, Pic> = {
   の: { hook: 'a “no” sign', clip: 'M0 0H100V100H0Z M40 35.5L55 35.5L38 79L26 74Z' },
@@ -36,6 +36,15 @@ export const PICS: Record<string, Pic> = {
   む: { hook: 'a cow: muu', under: '<path class="pt" d="M41 72Q55 66 69 72L69 82Q60 86 42 84Z"/>', over: '<circle class="pa" cx="48" cy="60" r="2.3"/><circle class="pa" cx="62" cy="60" r="2.3"/><ellipse class="pa" cx="49" cy="78" rx="2.2" ry="1.5"/><ellipse class="pa" cx="61" cy="78" rx="2.2" ry="1.5"/>' },
   ろ: { hook: 'a winding road', over: '<path fill="none" stroke="#fff" stroke-width="1.3" stroke-dasharray="3 2.5" d="M32 31.5 L56 29.5 L26 70 M31 65 Q45 54 57 53 Q74 56 75 68 Q73 82 55 86 L39 88"/>' },
   わ: { hook: 'a watermelon slice', under: '<path class="pa" style="opacity:.55" d="M37 58 Q50 45 62 46 Q77 50 77 63 Q75 76 52 87 L37 87Z"/><path fill="none" stroke="#5a9e44" stroke-width="2.2" d="M38 57 Q50 45 61 46.5 Q75.5 50 75.5 63 Q74 76 51 86"/>', over: '<g fill="#5a2418"><ellipse cx="50" cy="60" rx="1" ry="1.7"/><ellipse cx="61" cy="58" rx="1" ry="1.7"/><ellipse cx="57" cy="69" rx="1" ry="1.7"/><ellipse cx="46" cy="72" rx="1" ry="1.7"/><ellipse cx="67" cy="68" rx="1" ry="1.7"/><ellipse cx="52" cy="80" rx="1" ry="1.7"/></g>' },
+  え: { hook: 'an EXIT sign: the kana runs to the door', under: '<rect x="4" y="16" width="92" height="80" rx="6" style="fill:#7cc18c"/><rect x="8" y="30" width="12" height="58" style="fill:#fff"/>', over: '<circle class="pn" cx="36" cy="26" r="5.5"/>' },
+  る: { hook: 'a tape measure: ruletka', under: '<ellipse class="py" cx="54" cy="70" rx="18" ry="14"/>', over: '<path fill="none" stroke="#fff" stroke-width="3.5" stroke-dasharray=".6 2.4" d="M57 31.5 L27 67"/>' },
+  ら: { hook: 'a ping-pong bat: rakietka', under: '<path class="pa" style="opacity:.75" d="M33 70 Q46 59 58 59 Q71 61 71 72 Q67 83 50 87 L38 88 Q31 82 33 70Z"/>' },
+  み: { hook: 'a note on the mi line: do re mi', under: '<path class="pq" d="M6 40.5H94M6 48.5H94M6 56.5H94M6 64.5H94M6 72.5H94"/><path class="pa" d="M21 75Q19 66 27 62Q33 60 34 63Q31 70 25 76Q22 78 21 75Z"/>', clip: 'M10 20H58V34L36 62L44 66L34 86H10Z' },
+  や: { hook: 'a fried egg in a pan: jajko', under: '<path class="pn" style="stroke:#d8d2c4;stroke-width:.5" d="M52 55Q51 49 57 47Q60 43 66 44Q72 42 76 45Q81 47 80 51Q81 55 75 56Q70 59 64 57Q57 59 52 55Z"/>', over: '<circle class="pg" cx="66" cy="50.5" r="3.6"/>' },
+  に: { hook: 'a spool of thread: nici', under: '<path class="pt" d="M47 42Q60 39 73 38L74 67Q60 69 47 63Z"/>', over: '<path class="ps" stroke-width="1.3" d="M47 46Q60 43.5 73 42.5M47 50.5Q60 48 73 47.5M47 55Q60 53 73 52.5M47 59.5Q60 58 73 57.5"/>' },
+  き: { hook: 'a key', clip: 'M20 18H78V72H40V64H20Z', cls: 'pg', under: '<path class="pg" fill-rule="evenodd" d="M34 6a10 10 0 1 0 0.01 0Z M34 11.5a4.5 4.5 0 1 0 0.01 0Z"/>' },
+  し: { hook: 'a sailing ship', under: '<path class="pa" d="M37 30L37 74Q56 74 68 68Z"/><path class="pw" d="M14 88Q50 98 94 74V100H14Z"/>' },
+  そ: { hook: 'sewing: thread and needle', under: '<rect fill="#d8b98a" x="24" y="24" width="8" height="13" rx="1"/><rect fill="#b08a5a" x="22.5" y="22.5" width="11" height="2.4" rx="1"/><rect fill="#b08a5a" x="22.5" y="36" width="11" height="2.4" rx="1"/>', over: '<path fill="#93a3b8" d="M64 86.6L96 81.6Q97 82.4 96 83.2L65 92.4Q62 89.5 64 86.6Z"/><ellipse class="pn" cx="69.5" cy="88.3" rx="3" ry="1" transform="rotate(-13 69.5 88.3)"/>' },
 }
 
 const glyph = (k: string, attrs = '') =>
@@ -46,7 +55,7 @@ export function KanaPic({ k, size = 160 }: { k: string; size?: number }) {
   const p = PICS[k]
   const id = `clip-${k.codePointAt(0)}`
   const svg = (p?.under ?? '') + glyph(k, 'fill="currentColor"') +
-    (p?.clip ? `<clipPath id="${id}"><path d="${p.clip}" clip-rule="evenodd"/></clipPath>${glyph(k, `class="pa" clip-path="url(#${id})"`)}` : '') +
+    (p?.clip ? `<clipPath id="${id}"><path d="${p.clip}" clip-rule="evenodd"/></clipPath>${glyph(k, `class="${p.cls ?? 'pa'}" clip-path="url(#${id})"`)}` : '') +
     (p?.over ?? '')
   return <svg className="kana-pic" width={size} height={size} viewBox="0 0 100 100" dangerouslySetInnerHTML={{ __html: svg }} />
 }
