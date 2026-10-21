@@ -1,5 +1,5 @@
-// Pictures hidden in the kana's own shape. Each must give the whole syllable: a lone t or o
-// would fit several kana. A picture either recolours part of the kana
+// Pictures hidden in the kana's own shape: the strokes themselves must convincingly be the
+// thing, and give the whole syllable. Drawing an object next to a kana doesn't make it one. A picture either recolours part of the kana
 // (clip: the region shown in red) or adds shapes around it, never both.
 // Coordinates are tuned to Klee One at the size below; check visually after any change.
 type Pic = { hook: string; clip?: string; under?: string; over?: string }
@@ -22,10 +22,8 @@ export const PICS: Record<string, Pic> = {
   ひ: { hook: 'a grin: hi hi', under: '<circle class="pt" cx="50" cy="56" r="42"/>', over: '<circle class="pa" cx="38" cy="56" r="2.8"/><circle class="pa" cx="50" cy="56" r="2.8"/>' },
   あ: { hook: 'an ɑ inside', clip: 'M0 47H46.5V100H0Z M38 86H46.5V100H38Z' },
   お: { hook: 'an o inside', clip: 'M36 55H100V100H36Z' },
-  と: { hook: 't + o', under: '<ellipse class="pr" cx="52" cy="66" rx="20" ry="16"/>', over: '<rect class="pa" x="30" y="36" width="20" height="4.5" rx="2.2" transform="rotate(-4 40 38)"/>' },
   う: { hook: 'a U-turn sign', over: '<path class="pa" d="M32 96 L40 85.5 L45.5 94.5Z"/>' },
-  め: { hook: 'an eye: me in Japanese', over: '<circle class="pa" cx="60" cy="62" r="5"/>' },
-  ふ: { hook: 'Mount Fuji', under: '<path class="pm" d="M4 94 L40 36 Q50 30 60 36 L96 94Z"/><path class="pn" d="M40 36 Q50 30 60 36 L67 47 L58 44 L52 49 L46 44 L33 47Z"/>' },
+  ぬ: { hook: 'nudle in a bowl', under: '<path class="pb" d="M10 72 H92 C90 92 70 100 51 100 C32 100 12 92 10 72Z"/>' },
 }
 
 const glyph = (k: string, attrs = '') =>
