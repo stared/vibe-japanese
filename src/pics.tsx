@@ -21,6 +21,20 @@ export const PICS: Record<string, Pic> = {
     over: '<circle class="pa" cx="17" cy="51" r="2.4"/>',
   },
   ひ: { hook: 'a grin: hi hi', under: '<circle class="pt" cx="50" cy="56" r="42"/>', over: '<circle class="pa" cx="38" cy="56" r="2.8"/><circle class="pa" cx="50" cy="56" r="2.8"/>' },
+  あ: { hook: 'an ɑ inside', clip: 'M0 47H46.5V100H0Z M38 86H46.5V100H38Z' },
+  お: { hook: 'an o inside', clip: 'M36 55H100V100H36Z' },
+  も: { hook: 'an o inside', clip: 'M40 56H100V100H40Z' },
+  む: { hook: 'a u inside', clip: 'M36 54H100V100H36Z' },
+  ね: { hook: 'an n inside', clip: 'M31 40H42V100H31Z M42 0H100V67H42Z' },
+  ゆ: { hook: 'a j inside', clip: 'M43 47H60V100H43Z M48 0H60V37H48Z' },
+  し: { hook: 'an i, dot missing', over: '<circle class="pa" cx="37" cy="15" r="4"/>' },
+  に: { hook: 'an i, dot missing', over: '<circle class="pa" cx="31" cy="17" r="4"/>' },
+  り: { hook: 'an i, dot missing', over: '<circle class="pa" cx="36" cy="15" r="4"/>' },
+  と: { hook: 'a t, bar missing', over: '<rect class="pa" x="30" y="36" width="20" height="4.5" rx="2.2" transform="rotate(-4 40 38)"/>' },
+  う: { hook: 'a U-turn sign', over: '<path class="pa" d="M32 96 L40 85.5 L45.5 94.5Z"/>' },
+  こ: { hook: 'a broken o', under: '<ellipse class="pr" cx="50" cy="59" rx="25" ry="23"/>' },
+  め: { hook: 'an eye: me in Japanese', over: '<circle class="pa" cx="60" cy="62" r="5"/>' },
+  ふ: { hook: 'Mount Fuji', under: '<path class="pm" d="M4 94 L40 36 Q50 30 60 36 L96 94Z"/><path class="pn" d="M40 36 Q50 30 60 36 L67 47 L58 44 L52 49 L46 44 L33 47Z"/>' },
 }
 
 const glyph = (k: string, attrs = '') =>
