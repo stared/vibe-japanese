@@ -21,7 +21,7 @@ export const PICS: Record<string, Pic> = {
   },
   ひ: { hook: 'a grin: hi hi', under: '<circle class="pt" cx="50" cy="56" r="42"/>', over: '<circle class="pa" cx="38" cy="56" r="2.8"/><circle class="pa" cx="50" cy="56" r="2.8"/>' },
   あ: { hook: 'an ɑ inside', clip: 'M0 47H46.5V100H0Z M38 86H46.5V100H38Z' },
-  お: { hook: 'an o inside', clip: 'M36 55H100V100H36Z' },
+  お: { hook: 'an o inside', clip: 'M42 55H100V100H42Z' },
   う: { hook: 'a U-turn sign', over: '<path class="pa" d="M32 96 L40 85.5 L45.5 94.5Z"/>' },
   ぬ: { hook: 'nudle in a bowl', under: '<path class="pb" d="M10 72 H92 C90 92 70 100 51 100 C32 100 12 92 10 72Z"/>' },
   て: { hook: 'a T: in Polish the letter is called “te”', clip: 'M0 0H100V44H62V72H30V52H0Z' },
