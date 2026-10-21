@@ -93,3 +93,20 @@ header > nav + .scripts { margin-left: auto; }
 .dots i { width: 7px; height: 7px; border-radius: 50%; }
 .dots i.ok { background: var(--good); }
 .dots i.no { background: var(--bad); }
+
+/* rows */
+.rows-page { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6vh 0 64px; }
+.row-pick { font: 30px var(--jp); letter-spacing: .35em; padding: 4px 16px; border-radius: 8px; color: var(--faint); }
+.row-pick:hover { background: color-mix(in oklab, var(--faint) 45%, transparent); }
+.row-pick.gap { margin-top: 24px; }
+.row-intro { display: flex; gap: 36px; }
+.row-card { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 150px; cursor: default; }
+.hook { color: var(--muted); font-size: 14px; text-align: center; max-width: 360px; }
+.kana-pic { color: var(--ink); overflow: visible; }
+.kana-pic .pa { fill: var(--accent); }
+.kana-pic .pt { fill: color-mix(in oklab, var(--accent) 22%, var(--paper)); }
+.kana-pic .py { fill: color-mix(in oklab, #e8b830 40%, var(--paper)); }
+.kana-pic .pw { fill: color-mix(in oklab, #4a90c0 25%, var(--paper)); }
+.kana-pic .pw2 { fill: color-mix(in oklab, #4a90c0 45%, var(--paper)); }
+.row-progress { font: 20px var(--jp); letter-spacing: .4em; margin-bottom: -8px; }
+.word.good { color: var(--good); }

@@ -6,12 +6,15 @@ import { WORDS, NEW_CHARS, toks, type Word } from './words'
 import { load, logRetype, newCard, record, save, solid, MIN, DAY, type Attempt, type Store } from './srs'
 import { Grid } from './Grid'
 import { WordList } from './WordList'
+import { Rows } from './Rows'
+import { KanaPic, PICS } from './pics'
 
-type Tab = 'study' | 'grid' | 'words'
+type Tab = 'study' | 'rows' | 'grid' | 'words'
 
 export default function App() {
   const [store, setStore] = useState<Store>(load)
   const [tab, setTab] = useState<Tab>('study')
+  const [visit, setVisit] = useState(0) // clicking the open tab again resets it
   const [now, setNow] = useState(Date.now())
   const [script, setScript] = useState<Script>(loadScript)
   useEffect(() => saveScript(script), [script])
@@ -28,8 +31,8 @@ export default function App() {
     <div className="app">
       <header>
         <nav>
-          {(['study', 'grid', 'words'] as Tab[]).map(t => (
-            <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>{t}</button>
+          {(['study', 'rows', 'grid', 'words'] as Tab[]).map(t => (
+            <button key={t} className={tab === t ? 'on' : ''} onClick={() => { setTab(t); setVisit(v => v + 1) }}>{t}</button>
           ))}
         </nav>
         {due > 0 && <span className="due">{due} due</span>}
@@ -40,6 +43,7 @@ export default function App() {
         </span>
       </header>
       {tab === 'study' && <Study store={store} setStore={setStore} now={now} />}
+      {tab === 'rows' && <Rows key={visit} store={store} setStore={setStore} />}
       {tab === 'grid' && <Grid store={store} />}
       {tab === 'words' && <WordList store={store} onReplace={setStore} />}
     </div>
@@ -62,7 +66,8 @@ function pick(s: Store, now: number, last: string | null): Phase {
   if (d) return { kind: 'quiz', word: d, first: false, drill: true }
   const fresh = WORDS.find(w => !s.cards[w.kana])
   if (!fresh) return { kind: 'idle' }
-  const chars = NEW_CHARS.get(fresh.kana)!
+  // kana already met (e.g. in rows) need no introduction
+  const chars = NEW_CHARS.get(fresh.kana)!.filter(c => !s.kana[c])
   return chars.length ? { kind: 'kana', word: fresh, chars, i: 0 } : { kind: 'quiz', word: fresh, first: true }
 }
 
@@ -179,8 +184,9 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     }
     return (
       <main className="study">
-        <div className="word">{k}</div>
+        {PICS[k] ? <KanaPic k={k} size={150} /> : <div className="word">{k}</div>}
         {reading && <div className="reading">{reading}</div>}
+        {PICS[k] && <div className="hook">{PICS[k].hook}</div>}
         {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
         {NOTE[k] && <div className="sub">{NOTE[k]}</div>}
         <button className="next" onClick={advance}>next</button>
@@ -256,7 +262,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   )
 }
 
-function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { value: string; onChange: (s: string) => void; onEnter: () => void; placeholder?: string; shake?: boolean }) {
+export function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { value: string; onChange: (s: string) => void; onEnter: () => void; placeholder?: string; shake?: boolean }) {
   return (
     <input
       autoFocus
