@@ -113,8 +113,7 @@ header > nav + .scripts { margin-left: auto; }
 .row-progress { font: 20px var(--jp); letter-spacing: .4em; margin-bottom: -8px; }
 .word.good { color: var(--good); }
 
-/* hovering a kana in study swaps in its picture, in place */
+/* hovering a kana in study swaps in its picture, in place, no words */
 .hk { position: relative; display: inline-block; }
 .hk.on { color: transparent; }
 .hk .kana-pic { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
-.hk-hook { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; font: 14px system-ui, sans-serif; color: var(--muted); }

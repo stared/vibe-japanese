@@ -284,15 +284,12 @@ export function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { 
 
 /** A kana that shows its picture while hovered. */
 function HoverKana({ k, onHint }: { k: string; onHint?: () => void }) {
-  const sc = useScript()
   const [on, setOn] = useState(false)
-  if (!BASE[k]) return <>{k}</>
-  const pic = PICS[k]
+  if (!PICS[k]) return <>{k}</>
   return (
-    <span className={'hk' + (on && pic ? ' on' : '')} onMouseEnter={() => { setOn(true); onHint?.() }} onMouseLeave={() => setOn(false)}>
+    <span className={'hk' + (on ? ' on' : '')} onMouseEnter={() => { setOn(true); onHint?.() }} onMouseLeave={() => setOn(false)}>
       {k}
-      {on && pic && <KanaPic k={k} size={132} />}
-      {on && <span className="hk-hook">{pic ? `${tokenize(k)[0][sc]} · ${pic.hook}` : tokenize(k)[0][sc]}</span>}
+      {on && <KanaPic k={k} size={132} />}
     </span>
   )
 }

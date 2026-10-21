@@ -18,7 +18,7 @@ export const PICS: Record<string, Pic> = {
   く: {
     hook: 'an open beak: ku-ku',
     under: '<path class="py" d="M33 55 L60 26 Q66 58 62 90Z"/><circle class="pt" cx="20" cy="55" r="14"/>',
-    over: '<circle class="pa" cx="17" cy="51" r="2.4"/><text class="pa" x="72" y="62" font-size="9" font-family="ui-monospace, monospace">ku-ku</text>',
+    over: '<circle class="pa" cx="17" cy="51" r="2.4"/>',
   },
   ひ: { hook: 'a grin: hi hi', under: '<circle class="pt" cx="50" cy="56" r="42"/>', over: '<circle class="pa" cx="38" cy="56" r="2.8"/><circle class="pa" cx="50" cy="56" r="2.8"/>' },
 }
