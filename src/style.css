@@ -106,16 +106,6 @@ header > nav + .scripts { margin-left: auto; }
 .hook { color: var(--muted); font-size: 14px; text-align: center; max-width: 360px; }
 .hook b { color: var(--ink); font-weight: 600; }
 .kana-pic { color: var(--ink); overflow: visible; }
-.kana-pic .pa { fill: var(--accent); }
-.kana-pic .pt { fill: color-mix(in oklab, var(--accent) 22%, var(--paper)); }
-.kana-pic .py { fill: color-mix(in oklab, #e8b830 40%, var(--paper)); }
-.kana-pic .pw { fill: color-mix(in oklab, #4a90c0 25%, var(--paper)); }
-.kana-pic .pw2 { fill: color-mix(in oklab, #4a90c0 45%, var(--paper)); }
-.kana-pic .ps { fill: none; stroke: var(--accent); stroke-linecap: round; stroke-linejoin: round; }
-.kana-pic .pg { fill: #d9a400; }
-.kana-pic .pn { fill: #f0dfa8; }
-.kana-pic .pq { fill: none; stroke: color-mix(in oklab, #4a90c0 45%, var(--paper)); stroke-width: 2.5; stroke-linecap: round; }
-.kana-pic .pb { fill: color-mix(in oklab, #8a6a40 35%, var(--paper)); }
 .row-progress { font: 20px var(--jp); letter-spacing: .4em; margin-bottom: -8px; }
 .word.good { color: var(--good); }
 
@@ -123,3 +113,59 @@ header > nav + .scripts { margin-left: auto; }
 .hk { position: relative; display: inline-block; }
 .hk.on { color: transparent; }
 .hk .kana-pic { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+
+/* Mnemonics preserve the glyph: the accent only picks out existing ink. */
+.kana-pic { font-family: var(--jp); flex: 0 0 auto; }
+.kana-pic .mnemonic-ink { fill: var(--accent); }
+.mnemonic-hint { max-width: 420px; }
+.mnemonic-details { font-size: 13px; line-height: 1.6; text-align: left; }
+.mnemonic-details summary { cursor: pointer; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.mnemonic-hint > .mnemonic-details { margin-top: 8px; }
+.mnemonic-details p { margin: 10px 0; }
+.mnemonic-kind { color: var(--muted); font-size: 12px; }
+.confusion-feedback { max-width: 460px; }
+.confusion-feedback > .confusion { justify-content: center; }
+.mnemonic-contrast { font-size: 13px; line-height: 1.6; text-align: left; }
+.mnemonic-contrast p { margin: 5px 0; }
+.mnemonic-contrast .jp { font-size: 22px; margin-right: 5px; }
+
+.mnemonics-page { padding: 20px 0 60px; }
+.mnemonics-page h1 { font-size: 27px; font-weight: 500; margin: 0 0 10px; letter-spacing: -.03em; }
+.mnemonic-intro { max-width: 650px; font-size: 15px; margin: 0 0 24px; }
+.mnemonic-controls { display: flex; gap: 20px; justify-content: space-between; align-items: center; flex-wrap: wrap; margin: 0 0 28px; font-size: 13px; }
+.mnemonic-controls label { display: flex; gap: 10px; align-items: center; min-width: 0; }
+.mnemonic-controls select { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--faint); padding: 8px; border-radius: 5px; max-width: 360px; min-width: 0; }
+.hint-toggle { text-decoration: underline; text-underline-offset: 4px; padding: 8px 0; }
+.comparison-question { font-size: 19px; margin: 0 0 20px; }
+.recall-instruction { font-size: 14px; margin: 0 0 20px; }
+.mnemonic-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.mnemonic-card { border: 1px solid var(--faint); border-radius: 10px; padding: 18px 20px 22px; display: flex; flex-direction: column; align-items: center; min-height: 355px; }
+.mnemonic-card .reading { font-size: 22px; }
+.mnemonic-card h2 { font-size: 15px; font-weight: 400; line-height: 1.5; text-align: center; margin: 12px 0; }
+.mnemonic-card h2 b { font-weight: 650; }
+.shape-feature { margin: 0 0 14px; font-size: 13px; text-align: center; line-height: 1.6; }
+.mnemonic-card .mnemonic-details { width: 100%; margin-top: auto; }
+.mnemonic-card .mnemonic-details summary { text-align: center; }
+.reveal-cue { margin: 35px 0; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
+.mnemonic-notes { margin-top: 38px; max-width: 720px; border-top: 1px solid var(--faint); padding-top: 16px; font-size: 14px; line-height: 1.7; }
+.mnemonic-sources { font-size: 12px; }
+.mnemonic-sources a { color: inherit; text-underline-offset: 3px; }
+button:focus-visible, summary:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+@media (max-width: 760px) {
+  header { flex-wrap: wrap; gap: 16px; }
+  nav { gap: 16px; }
+  .mnemonic-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .mnemonic-card { padding: 14px; }
+  .row-intro { flex-wrap: wrap; justify-content: center; gap: 24px; }
+}
+@media (max-width: 460px) {
+  .app { padding: 0 16px; }
+  .mnemonic-cards { grid-template-columns: 1fr; }
+  .mnemonic-controls label { width: 100%; }
+  .mnemonic-controls select { flex: 1; width: 100%; }
+  .mnemonic-card { min-height: 320px; }
+  .mnemonics-page h1 { font-size: 25px; }
+  .grid-page { grid-template-columns: 1fr; gap: 24px; }
+  .detail { position: static; }
+}

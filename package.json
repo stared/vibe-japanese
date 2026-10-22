@@ -9,7 +9,8 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "shots": "node scripts/shots.mjs"
+    "shots": "node scripts/shots.mjs",
+    "check:mnemonics": "node scripts/check-mnemonics.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

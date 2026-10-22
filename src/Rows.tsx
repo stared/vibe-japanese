@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { GRID, GRID_VOICED, match, misread, normalize, tokenize } from './kana'
 import { record, logRetype, solid, type Store } from './srs'
 import { useScript } from './script'
-import { Hook, KanaPic, PICS } from './pics'
+import { Contrast, Hook, KanaPic } from './pics'
 import { kanaHistories, recentScore } from './history'
 import { fade, recent, weighted } from './recency'
 import { AnswerInput, speak } from './App'
@@ -167,10 +167,13 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
             : <>{typed.trim() && <span className="typed bad">{typed}</span>}<span className="r">{read(k)}</span></>}
         </span>
       </div>
-      {!ok && hook(k)}
+      {!ok && <Hook k={k} explain />}
       {conf && (
-        <div className="confusion">
-          <span className="jp">{conf}</span> {read(conf)}
+        <div className="confusion-feedback">
+          <div className="confusion">
+            <span className="jp">{conf}</span> {read(conf)}
+          </div>
+          <Contrast a={k} b={conf} />
         </div>
       )}
       {ok ? null : fixed

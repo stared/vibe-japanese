@@ -1,76 +1,52 @@
-// Pictures hidden in the kana's own shape: the strokes themselves must convincingly be the
-// thing, and give the whole syllable. Drawing an object next to a kana doesn't make it one. A picture either recolours part of the kana
-// (clip: the region shown in red) or adds shapes around it, never both.
-// Coordinates are tuned to Hiragino Sans, the font the kana are shown in, so a picture can
-// replace its kana in place; check visually after any change.
-// hook: one line of text; **bold** marks the part that gives the sound
-type Pic = { hook: string; clip?: string; cls?: string; under?: string; over?: string }
+import { useId } from 'react'
+import { MNEMONICS, comparison } from './mnemonics'
 
-export const PICS: Record<string, Pic> = {
-  の: { hook: 'a “**no**” sign', clip: 'M0 0H100V100H0Z M47.2 26.5H55.8L54.4 35L52.4 45L49.3 55L45.9 63L43.2 68H32.8L36.8 63L40.6 55L43.8 45L46 35Z' },
-  ん: { hook: 'an **n** inside', clip: 'M0 55.5H30.6L32.8 52L36 48L37 44H60V100H0Z' },
-  い: { hook: '“**ii**” without the dots', over: '<circle class="pa" cx="23" cy="23" r="4"/><circle class="pa" cx="64.5" cy="29" r="4"/>' },
-  す: { hook: 'a rope with a knot: **su**peł', clip: 'M53.9 0H60.4V34H100V100H0V34H53.9Z' },
-  よ: { hook: 'a **jo**-jo on its string', clip: 'M0 58H47V100H0Z' },
-  つ: { hook: 'a wave: **tsu**nami', under: '<path class="pw" d="M80 45 C83 64 68 76 40 79.5 C30 83 18 92 10 100 L100 100 L100 38 C93 39 85 41 80 45Z"/><path class="pw2" d="M24 52 C45 42 70 38 76 50 C79 62 62 71 44 76 C55 69 64 62 61 55 C56 48 40 49 24 52Z"/>' },
-  く: { hook: 'an open beak: **ku**-ku', under: '<path class="py" d="M31 50 L61 19 Q68 52 64 84Z"/><circle class="pt" cx="16" cy="50" r="13"/>', over: '<circle class="pa" cx="13" cy="46" r="2.4"/>' },
-  ひ: { hook: 'a grin: **hi** hi', under: '<circle class="pt" cx="51" cy="55" r="42"/>', over: '<circle class="pa" cx="40" cy="52" r="2.8"/><circle class="pa" cx="52" cy="52" r="2.8"/>' },
-  あ: { hook: 'an **ɑ** inside', clip: 'M0 44H44.5V100H0Z' },
-  お: { hook: 'an **o** inside', clip: 'M41 44H100V100H41Z' },
-  う: { hook: 'a **U**-turn sign', over: '<path class="pa" d="M26 84.5 L37 76.5 L38.5 92Z"/>' },
-  ぬ: { hook: '**nu**dle in a bowl', under: '<path class="pb" d="M8 70 H92 C90 90 72 98 50 98 C28 98 10 90 8 70Z"/>' },
-  て: { hook: 'a **T**: in Polish the letter is called “**te**”', clip: 'M0 0H100V35H66V70H32V35H0Z' },
-  ね: { hook: 'a cursive “**ne**”', clip: 'M40 0H100V100H27V40H40Z' },
-  ち: { hook: 'a chick: **ci**p-cip', under: '<path class="py" d="M37 66 Q44 56 57 55 Q72 56 74 66 Q73 77 55 79 Q41 79 37 66Z"/>', over: '<circle class="pa" cx="64" cy="62" r="2.4"/><path class="pa" d="M79 61 L88 65 L79 69Z"/><path class="ps" stroke-width="2" d="M47 85 V91 M54 85 V91"/>' },
-  た: { hook: '**t** + **a**', over: '<path class="ps" stroke-width="4.5" d="M89.5 46 Q91 62 89.5 80"/><path class="ps" stroke-width="4.5" d="M89 63 Q76 57.5 67 61"/>' },
-  と: { hook: '**t** + **o**', over: '<path class="ps" stroke-width="4" d="M31 31 L50 28"/><path class="ps" stroke-width="4" d="M80 41 Q90 52 88 63 Q87 70 83 74"/>' },
-  は: { hook: '**H** + **a**', clip: 'M0 0H36V100H0Z M36 30H60V41H36Z M60 0H71V57H60Z' },
-  ほ: { hook: '**H** + **o**', clip: 'M0 0H36V100H0Z M36 35H60V47H36Z M60 35H71V59H60Z M36 59H71V90H36Z' },
-  け: { hook: 'a **ke**bab on its spit', under: '<path class="pb" d="M55 24Q67 20 79 24L75 60Q68 68 61 60Z"/><path fill="none" stroke="#8a6a40" stroke-opacity=".6" stroke-width="1" d="M56 29Q67 27 78 29M58 50Q67 48 76 50M59 56Q67 55 75 56"/>' },
-  こ: { hook: '**K.O.**: a boxer lying knocked out', over: '<circle class="pt" cx="84.5" cy="73" r="6.5"/><path class="ps" style="stroke-width:1.1" d="M81 71L83 73M83 71L81 73M86 71L88 73M88 71L86 73"/><path class="pg" d="M80 58l.8 1.8 2 .2-1.5 1.3.5 2-1.8-1-1.8 1 .5-2-1.5-1.3 2-.2Z"/><path class="pg" d="M88.5 55l.8 1.8 2 .2-1.5 1.3.5 2-1.8-1-1.8 1 .5-2-1.5-1.3 2-.2Z"/><path class="pg" d="M94 61l.7 1.5 1.7.2-1.3 1.1.4 1.7-1.5-.9-1.5.9.4-1.7-1.3-1.1 1.7-.2Z"/>' },
-  む: { hook: 'a cow: **mu**u', under: '<path class="pt" d="M43 69Q57 63 70 69L70 79Q60 83 44 81Z"/>', over: '<circle class="pa" cx="50" cy="58" r="2.3"/><circle class="pa" cx="63" cy="58" r="2.3"/><ellipse class="pa" cx="51" cy="74" rx="2.2" ry="1.5"/><ellipse class="pa" cx="63" cy="74" rx="2.2" ry="1.5"/>' },
-  ろ: { hook: 'a road: **ro**zjazd', over: '<path fill="none" style="stroke:#e8b830" stroke-width="1.3" stroke-dasharray="3 2.5" d="M28 22 L65 20.8 L21 63 M33 56 Q50 46 64 49.5 Q76 53 76.5 66 Q75 80 50 81.5 L30 77"/>' },
-  わ: { hook: 'a **wa**termelon slice', under: '<path class="pa" style="opacity:.55" d="M35 56 Q48 42 61 40 Q78 42 79 59 Q77 72 60 75 L46 72 L35 68Z"/><path fill="none" stroke="#5a9e44" stroke-width="2.2" d="M36 55 Q48 42 61 40.5 Q77 43 78.5 59 Q76 72 60 74.5 L46 73"/>', over: '<g fill="#5a2418"><ellipse cx="47" cy="58" rx="1" ry="1.7"/><ellipse cx="60" cy="50" rx="1" ry="1.7"/><ellipse cx="68" cy="60" rx="1" ry="1.7"/><ellipse cx="55" cy="64" rx="1" ry="1.7"/><ellipse cx="44" cy="68" rx="1" ry="1.7"/><ellipse cx="63" cy="69" rx="1" ry="1.7"/></g>' },
-  え: { hook: 'an **E**XIT sign: the kana runs to the door', under: '<rect x="4" y="16" width="92" height="80" rx="6" style="fill:#7cc18c"/><rect x="8" y="30" width="12" height="58" style="fill:#f0dfa8"/>', over: '<circle class="pn" cx="36" cy="28" r="5"/>' },
-  る: { hook: 'a tape measure: **ru**letka', under: '<ellipse class="py" cx="45" cy="72" rx="13" ry="8"/>', over: '<path fill="none" style="stroke:#e8b830" stroke-width="3.5" stroke-dasharray=".6 2.4" d="M61.5 28.5 L29.5 55.5"/>' },
-  ら: { hook: 'a ping-pong bat: **ra**kietka', under: '<path class="pa" style="opacity:.75" d="M30 66Q40 55 56 55Q70 57 70 66Q68 75 52 77L36 76Q29 72 30 66Z"/>' },
-  み: { hook: 'a note on the mi line: do re **mi**', clip: 'M10 10H58V20L35 78L30 90H10Z', under: '<path class="pq" d="M6 40.5H94M6 48.5H94M6 56.5H94M6 64.5H94M6 72.5H94"/><path class="pa" d="M19 70Q18 60 26 56Q32 54 33 58Q31 66 25 73Q21 75 19 70Z"/>' },
-  や: { hook: 'a fried egg in a pan: **ja**jko', under: '<path class="pn" style="stroke:#d8d2c4;stroke-width:.5" d="M48 47Q47 41 53 39Q56 35 62 36Q68 34 72 37Q77 39 76 43Q77 47 71 48Q66 51 60 49Q53 51 48 47Z"/>', over: '<circle class="pg" cx="62" cy="42.5" r="3.6"/>' },
-  に: { hook: 'a spool of thread: **ni**ci', under: '<path class="pt" d="M55 38.5Q64 37.5 75 37L75 63Q64 64 56 62Z"/>', over: '<path class="ps" stroke-width="1.3" d="M58 42Q66 41 73 40.5M58 47Q66 46 73 45.5M58 52Q66 51 73 50.5M58 57Q66 56.5 73 56"/>' },
-  き: { hook: 'a **key**', clip: 'M15 8H90V50L80 66H68L60 52H15Z', cls: 'pg', under: '<path class="pg" fill-rule="evenodd" d="M45 -1a7 7 0 1 0 0.01 0Z M45 3a3 3 0 1 0 0.01 0Z"/>' },
-  し: { hook: 'a snail: **ś**limak', under: '<circle class="py" cx="53.5" cy="62.5" r="14"/>', over: '<path fill="none" stroke="#b07a20" stroke-width="2.6" stroke-linecap="round" d="M53.5 62.5 a2.4 2.4 0 1 1 3.4 1.2 a6 6 0 1 1 -8.4 -4.8 a10 10 0 1 1 -1.2 15.6"/><path class="ps" stroke-width="1.8" d="M79 51 L84 43 M77 50.5 L78.5 42"/><circle class="pa" cx="84.3" cy="42.3" r="2"/><circle class="pa" cx="78.6" cy="41.3" r="2"/>' },
-  そ: { hook: 'an owl: **so**wa', under: '<ellipse class="pb" cx="56.5" cy="66" rx="14" ry="12"/>', over: '<circle class="py" cx="51" cy="62.5" r="5.6"/><circle class="py" cx="63" cy="62.5" r="5.6"/><circle fill="#5a3a20" cx="51.6" cy="63" r="2.5"/><circle fill="#5a3a20" cx="62.4" cy="63" r="2.5"/><path fill="#d9a400" d="M54.8 68 L59.2 68 L57 73.5Z"/>' },
-  ふ: { hook: 'a puffer fish: **fu**gu', under: '<ellipse class="pw2" cx="52" cy="66" rx="32" ry="20"/><path class="pn" d="M25 72Q52 96 79 72Q74 84 52 87Q33 86 25 72Z"/><g class="ps" style="stroke-width:1.5"><path d="M33.6 49.6l-3-3"/><path d="M21 60.8l-4-1"/><path d="M68 48.7l2-3"/><path d="M41 84.8l-1 3"/><path d="M52 86v3"/><path d="M63 84.8l2 3"/></g>', over: '<circle class="pn" cx="69" cy="63" r="3.8"/><circle class="pa" cx="70" cy="63" r="2.1"/>' },
-  へ: { hook: 'a coat of arms: **he**rb', under: '<path class="pg" d="M14 32H86V62Q86 86 50 96Q14 86 14 62Z"/>' },
-  さ: { hook: 'cherry blossom twigs: **sa**kura', over: '<g style="fill:#f4b6c8"><ellipse cx="21.0" cy="29.2" rx="4" ry="3" transform="rotate(-90 21.0 29.2)"/><ellipse cx="24.6" cy="31.8" rx="4" ry="3" transform="rotate(-18 24.6 31.8)"/><ellipse cx="23.2" cy="36.1" rx="4" ry="3" transform="rotate(54 23.2 36.1)"/><ellipse cx="18.8" cy="36.1" rx="4" ry="3" transform="rotate(126 18.8 36.1)"/><ellipse cx="17.4" cy="31.8" rx="4" ry="3" transform="rotate(198 17.4 31.8)"/></g><circle style="fill:#d9607a" cx="21" cy="33" r="1.4"/><g style="fill:#f4b6c8"><ellipse cx="72.2" cy="55.8" rx="3.6" ry="2.7" transform="rotate(-70 72.2 55.8)"/><ellipse cx="74.4" cy="59.1" rx="3.6" ry="2.7" transform="rotate(2 74.4 59.1)"/><ellipse cx="71.9" cy="62.3" rx="3.6" ry="2.7" transform="rotate(74 71.9 62.3)"/><ellipse cx="68.2" cy="60.9" rx="3.6" ry="2.7" transform="rotate(146 68.2 60.9)"/><ellipse cx="68.3" cy="56.9" rx="3.6" ry="2.7" transform="rotate(218 68.3 56.9)"/></g><circle style="fill:#d9607a" cx="71" cy="59" r="1.3"/><g style="fill:#f4b6c8"><ellipse cx="72.6" cy="74.4" rx="3.8" ry="2.9" transform="rotate(-80 72.6 74.4)"/><ellipse cx="75.6" cy="77.5" rx="3.8" ry="2.9" transform="rotate(-8 75.6 77.5)"/><ellipse cx="73.6" cy="81.2" rx="3.8" ry="2.9" transform="rotate(64 73.6 81.2)"/><ellipse cx="69.4" cy="80.5" rx="3.8" ry="2.9" transform="rotate(136 69.4 80.5)"/><ellipse cx="68.8" cy="76.3" rx="3.8" ry="2.9" transform="rotate(208 68.8 76.3)"/></g><circle style="fill:#d9607a" cx="72" cy="78" r="1.3"/><g style="fill:#f4b6c8"><ellipse cx="25.6" cy="65.2" rx="3.4" ry="2.6" transform="rotate(-60 25.6 65.2)"/><ellipse cx="27.2" cy="68.7" rx="3.4" ry="2.6" transform="rotate(12 27.2 68.7)"/><ellipse cx="24.3" cy="71.2" rx="3.4" ry="2.6" transform="rotate(84 24.3 71.2)"/><ellipse cx="21.0" cy="69.3" rx="3.4" ry="2.6" transform="rotate(156 21.0 69.3)"/><ellipse cx="21.8" cy="65.6" rx="3.4" ry="2.6" transform="rotate(228 21.8 65.6)"/></g><circle style="fill:#d9607a" cx="24" cy="68" r="1.2"/>' },
-  か: { hook: 'an umbrella: **ka**sa in Japanese', under: '<path class="pw2" d="M8 52Q10 16 45 11Q80 14 88 50Q81 44 74 50Q66 43 58 50Q50 43 42 50Q33 43 25 51Q16 45 8 52Z"/><path class="pq" style="stroke:#3f6f9c;stroke-width:1.3" d="M45 11Q24 24 25 51M45 11Q36 28 42 50M45 11Q56 28 58 50M45 11Q70 24 74 50"/><path class="pq" style="stroke:#3f6f9c;stroke-width:2.5" d="M45 11V6"/>' },
-  な: { hook: '**n** + **a**', over: '<path class="ps" stroke-width="4.5" d="M41.5 44 Q44 38.5 50 38.5 Q56.5 38.5 58.5 46"/>' },
-  せ: { hook: 'a 7: **se**ven', clip: 'M0 0H100V100H0ZM36 35.6L70 34.1L70 58L61 58L61 41.5L36 42.5Z', cls: 'pt' },
-  も: { hook: 'camouflage: **mo**ro', over: '<clipPath id="m15"><text x="50" y="50" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-weight="400" font-size="84" text-anchor="middle" dominant-baseline="central">も</text></clipPath><g clip-path="url(#m15)"><rect width="100" height="100" fill="#6b7a3c"/><path fill="#3d4a22" d="M38 14q8 4 4 12t-8 2zM20 28q10-4 12 4t-10 2zM44 48q8-2 10 3t-10 3zM34 62q6 6 0 12t-6-8zM44 78q8-6 14 0t-10 6zM74 56q6 4 2 10t-6-4z"/><path fill="#7a5634" d="M52 27q8-2 10 3t-8 3zM16 48q8-2 10 3t-9 3zM37 38q5 4 2 9t-5-5zM60 80q6-4 10 1t-8 4zM70 46q5 2 3 7t-6-3z"/><path fill="#a39a5c" d="M26 51q4 0 4 4t-5-1zM32 74q4 2 2 6t-4-3zM50 82q5-2 6 2t-6 1zM78 66q3 0 3 4t-4 0zM40 20q3 0 2 3t-3-1z"/></g>' },
-  ゆ: { hook: 'an onsen curtain: ゆ (**ju**) = hot water', clip: 'M0 0H100V100H0Z', cls: 'pn', under: '<rect x="7" y="9" width="86" height="3.4" rx="1.7" fill="#8a6a40"/><path fill="#2c4a74" d="M10 12.4H90V95H10Z"/>' },
-  り: { hook: 'a diamond **ri**ng', clip: 'M0 0H100V100H0Z', cls: 'pg', over: '<path fill="#bfe3f5" stroke="#3a7fb0" stroke-width=".9" d="M47 5 L63 5 L67 10.5 L55 21 L43 10.5Z M43 10.5H67 M51 5 L55 21 L59 5"/>' },
-  れ: { hook: 'an X-ray: **re**ntgen', clip: 'M0 0H100V100H0Z', cls: 'pn', under: '<rect x="6" y="8" width="88" height="88" rx="3" fill="#26303b"/>', over: '<circle cx="30.5" cy="16" r="3" class="pn"/><circle cx="35.5" cy="16" r="3" class="pn"/><circle cx="30.5" cy="84" r="3" class="pn"/><circle cx="35.5" cy="84" r="3" class="pn"/><circle cx="17" cy="29.5" r="3" class="pn"/><circle cx="17" cy="34" r="3" class="pn"/><circle cx="15.5" cy="66.5" r="3" class="pn"/><circle cx="19.5" cy="70" r="3" class="pn"/><circle cx="86" cy="62" r="3" class="pn"/><circle cx="90" cy="65" r="3" class="pn"/>' },
-  を: { hook: 'a pencil: **o**łówek', over: '<path class="py" d="M15.8 54.6 L22.4 61 L11 70.5Z"/><path class="pa" d="M13.3 67.1 L15.6 69.2 L11 70.5Z"/>' },
-  め: { hook: 'a sheep: **me**ee', under: '<path class="ps" style="stroke:#7a6f66;stroke-width:3.5" d="M44 82v14M54 84v12M66 84v12M76 78v16"/><g style="fill:#ecdcbc;stroke:#c9b896;stroke-width:1.2"><circle cx="81.0" cy="55.0" r="8.5"/><circle cx="78.1" cy="65.3" r="8.5"/><circle cx="70.0" cy="73.2" r="8.5"/><circle cx="58.6" cy="76.9" r="8.5"/><circle cx="46.6" cy="75.4" r="8.5"/><circle cx="36.8" cy="69.1" r="8.5"/><circle cx="31.5" cy="59.6" r="8.5"/><circle cx="32.0" cy="48.9" r="8.5"/><circle cx="38.0" cy="39.7" r="8.5"/><circle cx="48.3" cy="34.1" r="8.5"/><circle cx="60.3" cy="33.3" r="8.5"/><circle cx="71.4" cy="37.7" r="8.5"/><circle cx="78.8" cy="46.1" r="8.5"/></g><g style="fill:#ecdcbc"><circle cx="81.0" cy="55.0" r="7.9"/><circle cx="78.1" cy="65.3" r="7.9"/><circle cx="70.0" cy="73.2" r="7.9"/><circle cx="58.6" cy="76.9" r="7.9"/><circle cx="46.6" cy="75.4" r="7.9"/><circle cx="36.8" cy="69.1" r="7.9"/><circle cx="31.5" cy="59.6" r="7.9"/><circle cx="32.0" cy="48.9" r="7.9"/><circle cx="38.0" cy="39.7" r="7.9"/><circle cx="48.3" cy="34.1" r="7.9"/><circle cx="60.3" cy="33.3" r="7.9"/><circle cx="71.4" cy="37.7" r="7.9"/><circle cx="78.8" cy="46.1" r="7.9"/><ellipse cx="56" cy="55" rx="23" ry="20"/></g><path style="fill:#a89a8c" d="M24 47Q8 46 4 57Q5 66 13 67Q22 66 27 57Z"/><ellipse style="fill:#e8a8a0" cx="24" cy="44" rx="6" ry="2.6" transform="rotate(-30 24 44)"/>', over: '<circle style="fill:#5a504a" cx="11" cy="56" r="1.6"/>' },
-  ま: { hook: 'a sushi roll: **ma**ki', under: '<ellipse style="fill:#2f4a32" cx="39" cy="71.5" rx="20" ry="15"/><ellipse class="pn" cx="39" cy="71.5" rx="14" ry="10"/><ellipse style="fill:#f08a5d" cx="36" cy="71.5" rx="5" ry="2.8"/><ellipse style="fill:#6fae5a" cx="43.5" cy="71.5" rx="2.4" ry="2.1"/>' },
+// Keep the existing public API for study, row practice and the kana grid.
+export const PICS = MNEMONICS
+
+/** No invented strokes: colour only the actual ink in the identifying region. */
+export function KanaPic({ k, size = 160, plain = false }: { k: string; size?: number; plain?: boolean }) {
+  const id = useId()
+  const p = MNEMONICS[k]
+  const glyph = <text x="50" y="50" fontSize="84" fontWeight="400" textAnchor="middle" dominantBaseline="central">{k}</text>
+  return (
+    <svg className="kana-pic" width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={k}>
+      <g fill="currentColor">{glyph}</g>
+      {!plain && p && <>
+        <defs><clipPath id={id}>
+          {p.focus.map(([x, y, width, height], i) => <rect key={i} x={x} y={y} width={width} height={height} />)}
+        </clipPath></defs>
+        <g className="mnemonic-ink" clipPath={`url(#${id})`} aria-hidden="true">{glyph}</g>
+      </>}
+    </svg>
+  )
 }
 
-const glyph = (k: string, attrs = '') =>
-  `<text x="50" y="50" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-weight="400" font-size="84" text-anchor="middle" dominant-baseline="central" ${attrs}>${k}</text>`
-
-/** The kana with its picture, or just the kana in the same style when it has none. */
-export function KanaPic({ k, size = 160 }: { k: string; size?: number }) {
-  const p = PICS[k]
-  const id = `clip-${k.codePointAt(0)}`
-  const svg = (p?.under ?? '') + glyph(k, 'fill="currentColor"') +
-    (p?.clip ? `<clipPath id="${id}"><path d="${p.clip}" clip-rule="evenodd"/></clipPath>${glyph(k, `class="${p.cls ?? 'pa'}" clip-path="url(#${id})"`)}` : '') +
-    (p?.over ?? '')
-  return <svg className="kana-pic" width={size} height={size} viewBox="0 0 100 100" dangerouslySetInnerHTML={{ __html: svg }} />
+export function CueText({ text }: { text: string }) {
+  return <>{text.split('**').map((t, i) => i % 2 ? <b key={i}>{t}</b> : t)}</>
 }
 
-/** The picture's one-line hint, with the part that gives the sound in bold. */
-export function Hook({ k }: { k: string }) {
-  const h = PICS[k]?.hook
-  if (!h) return null
-  return <div className="hook">{h.split('**').map((t, i) => i % 2 ? <b key={i}>{t}</b> : t)}</div>
+/** Short cue for practice; optional explanation never crowds the row cards. */
+export function Hook({ k, explain = false }: { k: string; explain?: boolean }) {
+  const p = MNEMONICS[k]
+  if (!p) return null
+  return (
+    <div className="mnemonic-hint">
+      <div className="hook"><CueText text={p.hook} /></div>
+      {explain && <details className="mnemonic-details" key={k}>
+        <summary>See the shape</summary>
+        <p>{p.shape}</p>
+        <p>{p.sound}</p>
+        <p className="mnemonic-kind">{p.kind === 'bridge' ? 'Memory bridge: the sound needs a verbal association.' : 'Shape cue: look for the image in the strokes.'}</p>
+      </details>}
+    </div>
+  )
+}
+
+/** Only explain pairs we have actually reviewed as look-alikes. */
+export function Contrast({ a, b }: { a: string; b: string }) {
+  if (!comparison(a, b)) return null
+  return <div className="mnemonic-contrast">
+    {[a, b].map(k => <p key={k}><span className="jp">{k}</span> {MNEMONICS[k].feature}</p>)}
+  </div>
 }

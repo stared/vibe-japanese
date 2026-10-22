@@ -7,10 +7,11 @@ import { load, logRetype, newCard, record, save, solid, MIN, DAY, type Attempt, 
 import { Grid } from './Grid'
 import { WordList } from './WordList'
 import { Rows } from './Rows'
-import { Hook, KanaPic, PICS } from './pics'
+import { Contrast, Hook, KanaPic, PICS } from './pics'
+import { Mnemonics } from './MnemonicGuide'
 import { fade, recent, weighted, type Recent } from './recency'
 
-type Tab = 'study' | 'rows' | 'grid' | 'words'
+type Tab = 'study' | 'rows' | 'grid' | 'words' | 'hints'
 
 export default function App() {
   const [store, setStore] = useState<Store>(load)
@@ -32,7 +33,7 @@ export default function App() {
     <div className="app">
       <header>
         <nav>
-          {(['study', 'rows', 'grid', 'words'] as Tab[]).map(t => (
+          {(['study', 'rows', 'grid', 'words', 'hints'] as Tab[]).map(t => (
             <button key={t} className={tab === t ? 'on' : ''} onClick={() => { setTab(t); setVisit(v => v + 1) }}>{t}</button>
           ))}
         </nav>
@@ -43,6 +44,7 @@ export default function App() {
           ))}
         </span>
       </header>
+      {tab === 'hints' && <Mnemonics />}
       {tab === 'study' && <Study store={store} setStore={setStore} now={now} />}
       {tab === 'rows' && <Rows key={visit} store={store} setStore={setStore} />}
       {tab === 'grid' && <Grid store={store} />}
@@ -190,7 +192,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
       <main className="study">
         {PICS[k] ? <KanaPic k={k} size={150} /> : <div className="word">{k}</div>}
         {reading && <div className="reading">{reading}</div>}
-        <Hook k={k} />
+        <Hook k={k} explain />
         {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
         {NOTE[k] && <div className="sub">{NOTE[k]}</div>}
         <button className="next" onClick={advance}>next</button>
@@ -241,10 +243,13 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
         })}
       </div>
       {confusions.map(([x, c]) => (
-        <div key={x.kana} className="confusion">
-          <span className="jp">{x.kana}</span> {x[sc]}
-          <span className="vs">≠</span>
-          <span className="jp">{c}</span> {tokenize(c)[0][sc]}
+        <div key={x.kana} className="confusion-feedback">
+          <div className="confusion">
+            <span className="jp">{x.kana}</span> {x[sc]}
+            <span className="vs">≠</span>
+            <span className="jp">{c}</span> {tokenize(c)[0][sc]}
+          </div>
+          <Contrast a={x.kana} b={c} />
         </div>
       ))}
       {w.en && (

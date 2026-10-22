@@ -65,7 +65,7 @@ function Detail({ k, store, hist }: { k: string; store: Store; hist: boolean[] }
         {words.map(w => <li key={w.kana}><span className="jp">{w.kana}</span> {w.en}</li>)}
       </ul>
       <Dots hist={hist} />
-      {PICS[k] && <><KanaPic k={k} size={140} /><Hook k={k} /></>}
+      {PICS[k] && <><KanaPic k={k} size={140} /><Hook k={k} explain /></>}
     </>
   )
 }
