@@ -28,11 +28,15 @@ try {
   await tab('hints')
   await page.waitForSelector('.mnemonic-card')
   assert.equal(await page.$$eval('.mnemonic-card', cards => cards.length), 46)
+  assert.equal(await page.$$eval('.mnemonic-card [data-treatment]', xs => xs.length), 46)
+  await page.click('.picture-toggle')
   assert.equal(await page.$$eval('.mnemonic-card clipPath', clips => clips.length), 46)
   assert.equal(await page.$$eval('.mnemonic-card clipPath', clips => new Set(clips.map(c => c.id)).size), 46)
+  await page.click('.picture-toggle')
+  assert(await page.$$eval('.mnemonic-card [id]', nodes => new Set(nodes.map(n => n.id)).size === nodes.length), 'Picture IDs must be unique')
   await page.screenshot({ path: `${out}/desktop.png` })
 
-  // Compact contact sheet makes every highlighted region reviewable at once.
+  // Compact contact sheet makes every illustration reviewable at once.
   const auditStyle = await page.addStyleTag({ content: `
     .app { max-width: 1260px; } header, .mnemonic-intro, .mnemonic-controls,
     .mnemonic-notes, .mnemonic-card .mnemonic-details, .shape-feature { display: none; }
@@ -46,6 +50,9 @@ try {
   const serif = await page.addStyleTag({ content: '.kana-pic { font-family: "Hiragino Mincho ProN", serif; }' })
   await page.screenshot({ path: `${out}/serif-contact-sheet.png`, fullPage: true })
   await serif.evaluate(el => el.remove())
+  await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'dark' }])
+  await page.screenshot({ path: `${out}/dark-contact-sheet.png`, fullPage: true })
+  await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }])
   await auditStyle.evaluate(el => el.remove())
 
   const groups = await page.$$eval('select option', opts => opts.slice(1).map(o => o.value))
@@ -69,6 +76,7 @@ try {
   await page.click('.hint-toggle')
   assert.equal(await page.$$eval('.mnemonic-card clipPath', xs => xs.length), 0)
   assert.equal(await page.$$eval('.mnemonic-card .reading', xs => xs.length), 0)
+  assert.equal(await page.$$eval('.mnemonic-card [data-art-layer]', xs => xs.length), 0)
   await page.click('.reveal-cue')
   assert.equal(await page.$$eval('.mnemonic-card .reading', xs => xs.length), 1)
   assert.equal(await page.$$eval('.reveal-cue', xs => xs.length), 2)

@@ -9,6 +9,7 @@ const ALL = GRID.map(r => r.cells.replaceAll('・', '')).join('')
 export function Mnemonics() {
   const sc = useScript()
   const [group, setGroup] = useState('all')
+  const [mode, setMode] = useState<'picture' | 'structure'>('picture')
   const [hidden, setHidden] = useState(false)
   const [revealed, setRevealed] = useState<Set<string>>(new Set())
   const selected = LOOK_ALIKES.find(g => g.kana === group)
@@ -17,12 +18,13 @@ export function Mnemonics() {
 
   return <main className="mnemonics-page">
     <h1>One shape, one cue</h1>
-    <p className="mnemonic-intro">Polish and English hooks for all 46 basic hiragana. Bold gives the sound cue; colour picks out the distinguishing strokes. Find that feature in the plain character, then recall its sound.</p>
+    <p className="mnemonic-intro">Polish and English hooks for all 46 basic hiragana. Pictures turn the strokes into objects, gestures and little scenes. Bold gives the sound cue. Find that feature in the plain character, then recall its sound.</p>
     <div className="mnemonic-controls">
       <label>Compare <select value={group} onChange={e => { setGroup(e.target.value); setRevealed(new Set()) }}>
         <option value="all">All 46 hiragana</option>
         {LOOK_ALIKES.map(g => <option key={g.kana} value={g.kana}>{g.kana} — {g.title}</option>)}
       </select></label>
+      <button className="picture-toggle" onClick={() => setMode(mode === 'picture' ? 'structure' : 'picture')} aria-pressed={mode === 'structure'}>{mode === 'picture' ? 'Show distinguishing strokes' : 'Show pictures'}</button>
       <button className="hint-toggle" onClick={toggleHints} aria-pressed={hidden}>{hidden ? 'Show all hints' : 'Hide hints · try recall'}</button>
     </div>
     {selected && <p className="comparison-question">{selected.title}</p>}
@@ -32,7 +34,7 @@ export function Mnemonics() {
         const p = MNEMONICS[k]
         const visible = !hidden || revealed.has(k)
         return <article className="mnemonic-card" key={k}>
-          <KanaPic k={k} size={130} plain={!visible} />
+          <KanaPic k={k} size={130} plain={!visible} mode={mode} />
           {visible ? <>
             <div className="reading">{tokenize(k)[0][sc]}</div>
             <h2><CueText text={p.hook} /></h2>

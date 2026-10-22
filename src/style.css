@@ -114,7 +114,7 @@ header > nav + .scripts { margin-left: auto; }
 .hk.on { color: transparent; }
 .hk .kana-pic { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
 
-/* Mnemonics preserve the glyph: the accent only picks out existing ink. */
+/* Shared layout for illustrated kana and the optional structural view. */
 .kana-pic { font-family: var(--jp); flex: 0 0 auto; }
 .kana-pic .mnemonic-ink { fill: var(--accent); }
 .mnemonic-hint { max-width: 420px; }
@@ -168,4 +168,36 @@ button:focus-visible, summary:focus-visible, select:focus-visible { outline: 2px
   .mnemonics-page h1 { font-size: 25px; }
   .grid-page { grid-template-columns: 1fr; gap: 24px; }
   .detail { position: static; }
+}
+
+/* Each picture has its own materials; the native kana remains its contour. */
+.kana-pic {
+  --art-blue: #347ca6; --art-red: #bd4b3b; --art-gold: #966717;
+  --art-wood: #855631; --art-metal: #536779; --art-green: #3d7e61;
+  --art-purple: #77538e; --art-pink: #aa477b; --art-shine: #fff7d9;
+}
+.art-skin { fill: #ecc49e; }
+.art-sky { fill: color-mix(in srgb, var(--art-blue) 24%, var(--paper)); }
+.art-coral { fill: #d78b7c; }
+.art-glass { fill: color-mix(in srgb, var(--art-blue) 15%, var(--paper)); }
+.art-parchment { fill: #ead9a7; }
+.art-honey { fill: #e4c16c; }
+.art-dough { fill: #e5ba75; }
+.art-silver { fill: color-mix(in srgb, var(--art-metal) 25%, var(--paper)); }
+.art-stone { fill: color-mix(in srgb, var(--art-metal) 15%, var(--paper)); }
+.art-snow { fill: var(--paper); }
+.art-lilac { fill: color-mix(in srgb, var(--art-purple) 25%, var(--paper)); }
+.art-pepper { fill: #dd7867; }
+.art-water { fill: color-mix(in srgb, var(--art-blue) 30%, var(--paper)); }
+.art-porcelain { fill: color-mix(in srgb, var(--art-blue) 12%, var(--paper)); }
+.art-meadow { fill: color-mix(in srgb, var(--art-green) 18%, var(--paper)); }
+.art-letter { font: italic 17px Georgia, serif; }
+.art-small { font: 9px var(--mono); }
+.picture-toggle { padding: 7px 10px; border: 1px solid var(--faint); border-radius: 5px; font-size: 12px; }
+@media (prefers-color-scheme: dark) {
+  .kana-pic {
+    --art-blue: #72b8d8; --art-red: #ee8b78; --art-gold: #dbb760;
+    --art-wood: #c69a70; --art-metal: #9bb2c4; --art-green: #84bea0;
+    --art-purple: #bc97d5; --art-pink: #df8bbb;
+  }
 }

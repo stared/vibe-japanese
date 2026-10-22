@@ -1,10 +1,10 @@
 // These are recognition aids, not etymologies or pronunciation transcriptions.
-// Start with the unmodified glyph. An added eye, face, colour or background cannot
-// be the reason an analogy works. Each hook must name its distinguishing feature.
+// Start with the unmodified glyph. Supporting detail makes the image legible;
+// its defining contour must come from the kana. Name its distinguishing feature.
 // A “bridge” has a useful shape anchor but needs an extra verbal association.
 // Editorial checks: keep the kana upright; explain the rest of the silhouette;
 // give the whole mora (not just its consonant); test against the nearest glyph.
-// Colour is optional. Removing it must leave every recognition cue intact.
+// Removing the illustration must leave the structural feature recognisable.
 // Retained familiar anchors are intentional: novelty is not worth a worse cue.
 export type Mnemonic = {
   hook: string
@@ -46,16 +46,16 @@ export const MNEMONICS: Record<string, Mnemonic> = {
     feature: 'Detached head; angular body ends in a rightward foot.',
   },
   お: {
-    hook: '**O**sobno: a dash at upper right, two curls below.',
-    shape: 'The upright curls into a small loop at lower left. The broad curve to its right and the separate upper-right dash make this the dotted member of the あ / お pair.',
-    sound: 'Polish osobno → o: the upper-right dash stands separately. Remember the two lower curls too, since む also has a separate dash.',
+    hook: '**O**kulary: two lenses and a loose arm.',
+    shape: 'The little lower-left loop and broad right arch hold two lenses. The upright is a folded arm; the detached upper-right dash is the loose arm. Keep that dash: it separates お from あ.',
+    sound: 'Polish okulary → o. The asymmetrical lenses and detached arm make this a peculiar pair of glasses.',
     kind: 'shape', focus: [[68, 12, 25, 27]],
     feature: 'Separate upper-right dash; small left loop beside a rounded right arch.',
   },
   か: {
-    hook: '**Ka**rate: a bent leg and a separate kick.',
-    shape: 'The left side has a long slant crossing a bent, hooked stroke. The isolated slant at right is the kick. Remember both the hooked leg and the detached kick.',
-    sound: 'Polish karate → ka. This is a stick-figure action, not a complete person.',
+    hook: '**Ka**rate: a bent stance and a separate chopping hand.',
+    shape: 'The left side crosses into a bent, hooked stance. The isolated slant at right is the chopping hand. Remember both the hook and the detached hand.',
+    sound: 'Polish karate → ka. The extra head and gi explain the action; the hooked stance and separate hand belong to the glyph.',
     kind: 'bridge', focus: [[66, 20, 28, 48]],
     feature: 'Hooked left part plus one separate slant on the right.',
   },
@@ -67,8 +67,8 @@ export const MNEMONICS: Record<string, Mnemonic> = {
     feature: 'Two crossbars on a sloping stem; bottom curve opens right.',
   },
   く: {
-    hook: '**Ku**rzy dziób: one sharp beak pointing left.',
-    shape: 'The whole kana is the open beak: two straightish sides meeting at a left-facing point. No head or feathers are needed.',
+    hook: '**Ku**rzy dziób: a wide-open beak.',
+    shape: 'Two sides meet at the left-hand hinge of a beak opening to the right. The bird’s head sits behind that hinge; the kana is the entire open beak.',
     sound: 'Polish kurzy → ku, as in kurzy dziób.',
     kind: 'shape', focus: [[23, 33, 27, 33]],
     feature: 'One corner pointing left, with no curve or extra stroke.',
@@ -151,22 +151,22 @@ export const MNEMONICS: Record<string, Mnemonic> = {
     feature: 'One top bar with a C-shaped bend below; no upper zigzag.',
   },
   と: {
-    hook: '**To**rba: a tilted handle over an open bag.',
-    shape: 'The short diagonal points into a broad, low bowl-shaped stroke. The diagonal is the handle; the lower curve is the bag seen from the side.',
-    sound: 'Polish torba → to. Keep the handle slanted and the bowl open.',
+    hook: '**To**pór: a slanted handle above a curved blade.',
+    shape: 'The short diagonal is the axe handle. Below it, the broad upward-opening curve is the cutting edge of its crescent blade. Keep the short handle and low blade separate.',
+    sound: 'Polish topór → to. Follow the kana along the blade’s curved edge.',
     kind: 'shape', focus: [[28, 10, 28, 37]],
     feature: 'Short slanted stroke above a low, upward-opening bowl.',
   },
   な: {
-    hook: '**Na** krzyż, then a loop and a dash.',
-    shape: 'Start with the cross on the left: na krzyż. To its right are a detached dash and a dangling loop. The right side is not the two open curves of た.',
-    sound: 'Polish na krzyż → na. The phrase names the strongest part of the shape; the loop and dash finish its fingerprint.',
+    hook: '**Na** kolanach: kneeling beside a cross.',
+    shape: 'The cross stands at left. At right, the detached dash is a bowed head and the low loop suggests folded knees. That head-and-knees pair separates it from た’s two footprints.',
+    sound: 'Polish na kolanach → na. The phrase links the kneeling pose to the sound.',
     kind: 'bridge', focus: [[9, 14, 47, 49]],
     feature: 'Cross at upper left; separate dash and loop on the right.',
   },
   に: {
-    hook: '**Ni**ci: a needle beside two lengths of thread.',
-    shape: 'The long left stroke is the needle; the two separate right curves are the threads. Remember the needle as well as both threads.',
+    hook: '**Ni**ci: a needle beside a spool.',
+    shape: 'The long left stroke is the needle. The two short right curves are the top and bottom of a spool of thread. Remember the needle beside both spool edges.',
     sound: 'Polish nici → ni; English needle also begins with a similar sound.',
     kind: 'shape', focus: [[12, 14, 26, 76]],
     feature: 'Uncrossed upright on the left of two short horizontal strokes.',
@@ -207,8 +207,8 @@ export const MNEMONICS: Record<string, Mnemonic> = {
     feature: 'One deep U-shaped curve, open upward, with flicks at both ends.',
   },
   ふ: {
-    hook: '**Fu**ji: smoke between two sloping sides.',
-    shape: 'The middle bends like drifting smoke, with a short dash above it. The strokes at lower left and right suggest the mountain slopes. In brush-style fonts, fine lines may connect them.',
+    hook: '**Fu**ji: a winding trail between two slopes.',
+    shape: 'The two side strokes are mountain slopes. The central bend is a winding path down the mountain, and the separate top dash is a cloud. In brush-style fonts, fine lines may connect the strokes.',
     sound: 'Mount Fuji → fu. Japanese f here is blown between the lips, without the teeth touching the lower lip.',
     kind: 'shape', focus: [[8, 47, 26, 38], [70, 47, 24, 38]],
     feature: 'Central bend and top dash, flanked by two lower side strokes.',
@@ -263,9 +263,9 @@ export const MNEMONICS: Record<string, Mnemonic> = {
     feature: 'Two crossbars on a hook that opens upward; no closed loop.',
   },
   や: {
-    hook: '**Ja**cht: a curved hull pierced by a slanting mast.',
-    shape: 'The upper-right curve is the hull; the long diagonal mast crosses it and sticks out below. The short detached stroke above suggests a pennant.',
-    sound: 'Polish jacht → ja; Hepburn writes ya. The “mast through the hull” is deliberately peculiar and belongs to this outline.',
+    hook: '**Ja**cht: curved hull, slanting mast, dangling anchor.',
+    shape: 'The upper-right curve forms the hull. The long slant crosses it like a mast continuing below as an anchor line. The short detached stroke above is a pennant. This deliberately peculiar alignment makes the whole outline matter.',
+    sound: 'Polish jacht → ja; Hepburn writes ya. Keep the crossed hull and the detached pennant together.',
     kind: 'shape', focus: [[28, 18, 31, 71]],
     feature: 'Upper-right bowl crossed by a slanting stem; detached short stroke above.',
   },
@@ -368,8 +368,8 @@ export const LOOK_ALIKES = [
   { kana: 'えれ', title: 'Detached head or tall left stem?' },
   { kana: 'おむ', title: 'Same upper-right dash; different lower sweep.' },
   { kana: 'とひ', title: 'Separate handle or one deep U?' },
-  { kana: 'かや', title: 'Separate right kick or upper-right bowl?' },
-  { kana: 'ふへ', title: 'Smoke and side strokes, or one continuous ridge?' },
+  { kana: 'かや', title: 'Separate right hand or upper-right bowl?' },
+  { kana: 'ふへ', title: 'Central trail and side strokes, or one continuous ridge?' },
   { kana: 'をち', title: 'Extra sweeping strand or a simple right belly?' },
 ] as const
 

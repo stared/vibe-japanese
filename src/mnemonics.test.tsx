@@ -2,11 +2,13 @@ import { expect, test } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { GRID } from './kana'
 import { LOOK_ALIKES, MNEMONICS, comparison } from './mnemonics'
+import { KANA_ART } from './kanaArt'
 import { KanaPic, Hook } from './pics'
 
 test('the set covers exactly the 46 base kana, and every cue has a sound anchor', () => {
   const base = GRID.flatMap(r => [...r.cells].filter(k => k !== '・'))
   expect(Object.keys(MNEMONICS).sort()).toEqual(base.sort())
+  expect(Object.keys(KANA_ART).sort()).toEqual(base.sort())
   for (const [k, m] of Object.entries(MNEMONICS)) {
     expect(m.hook, k).toMatch(/\*\*[^*]+\*\*/)
     expect(m.hook.split('**').length % 2, k).toBe(1)
@@ -38,11 +40,29 @@ test('plain mode reveals no highlight, and duplicate kana get independent clippi
   const plain = renderToStaticMarkup(<KanaPic k="ね" plain />)
   expect(plain).not.toContain('clipPath')
   expect(plain).toContain('>ね</text>')
-  const repeated = renderToStaticMarkup(<><KanaPic k="ね" /><KanaPic k="ね" /></>)
+  const repeated = renderToStaticMarkup(<><KanaPic k="ね" mode="structure" /><KanaPic k="ね" mode="structure" /></>)
   const ids = [...repeated.matchAll(/<clipPath id="([^"]+)"/g)].map(m => m[1])
   expect(ids).toHaveLength(2)
   expect(new Set(ids).size).toBe(2)
   for (const id of ids) expect(repeated).toContain(`url(#${id})`)
   expect(renderToStaticMarkup(<Hook k="が" />)).toBe('')
   expect(renderToStaticMarkup(<KanaPic k="が" />)).toContain('>が</text>')
+})
+
+test('picture layers disappear completely for bare-glyph recall', () => {
+  for (const k of Object.keys(KANA_ART)) {
+    const picture = renderToStaticMarkup(<KanaPic k={k} />)
+    expect(picture, k).toContain('data-treatment')
+    const plain = renderToStaticMarkup(<KanaPic k={k} plain />)
+    expect(plain, k).not.toContain('data-art-layer')
+    expect(plain, k).not.toContain('data-treatment')
+    expect(plain, k).not.toContain('<defs>')
+  }
+})
+
+test('repeated textured pictures reference their own SVG definitions', () => {
+  const markup = renderToStaticMarkup(<>{['す', 'き', 'す', 'き'].map((k, i) => <KanaPic key={i} k={k} />)}</>)
+  const ids = [...markup.matchAll(/ id="([^"]+)"/g)].map(m => m[1])
+  expect(new Set(ids).size).toBe(ids.length)
+  for (const ref of markup.matchAll(/url\(#([^)]+)\)/g)) expect(ids).toContain(ref[1])
 })
