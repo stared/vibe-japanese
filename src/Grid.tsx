@@ -17,7 +17,7 @@ export function Grid({ store }: { store: Store }) {
   const [sel, setSel] = useState<string | null>(null)
   const [hover, setHover] = useState<string | null>(null)
   const learned = WORDS.filter(w => store.cards[w.kana])
-  const seen = new Set(learned.flatMap(w => toks(w).map(t => t.kana)))
+  const seen = new Set([...learned.flatMap(w => toks(w).map(t => t.kana)), ...Object.keys(store.kana)])
   const hists = useMemo(() => kanaHistories(store.log), [store.log])
 
   const cell = (k: string, j: number) => {

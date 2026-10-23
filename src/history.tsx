@@ -2,7 +2,7 @@ import { tokenize } from './kana'
 import { WORDS } from './words'
 import type { LogEntry } from './srs'
 
-const scored = (e: LogEntry) => e.kind !== 'retype' && e.miss !== undefined
+const scored = (e: LogEntry) => e.kind !== 'retype' && (e.miss !== undefined || e.ok)
 
 export const wordHistory = (log: LogEntry[], id: string) => log.filter(e => scored(e) && e.id === id).map(e => e.ok)
 
@@ -10,9 +10,11 @@ export function kanaHistories(log: LogEntry[]): Map<string, boolean[]> {
   const m = new Map<string, boolean[]>()
   for (const e of log) {
     if (!scored(e)) continue
+    const miss = e.miss ?? []
     tokenize(e.id, WORDS.find(w => w.kana === e.id)?.read).forEach((x, i) => {
+      if (e.hint?.includes(i) && !miss.includes(i)) return
       if (!m.has(x.kana)) m.set(x.kana, [])
-      m.get(x.kana)!.push(!e.miss!.includes(i))
+      m.get(x.kana)!.push(!miss.includes(i))
     })
   }
   return m
