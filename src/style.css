@@ -20,7 +20,8 @@ body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 sy
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
 
 .app { max-width: 960px; margin: 0 auto; padding: 0 24px; }
-header { display: flex; align-items: baseline; padding: 20px 0; }
+header { display: flex; flex-wrap: wrap; row-gap: 6px; align-items: baseline; padding: 20px 0; }
+.due { white-space: nowrap; padding-left: 16px; }
 nav { display: flex; gap: 20px; }
 nav button { color: var(--muted); font-size: 14px; }
 nav button.on { color: var(--ink); }
@@ -36,7 +37,7 @@ header > nav + .scripts { margin-left: auto; }
 .label { font-size: 13px; color: var(--muted); min-height: 20px; }
 .label.good { color: var(--good); }
 .label.bad { color: var(--bad); }
-.word { font-family: var(--jp); font-size: 104px; line-height: 1.15; display: flex; cursor: default; }
+.word { font-family: var(--jp); font-size: clamp(48px, 13vw, 104px); line-height: 1.15; display: flex; flex-wrap: wrap; justify-content: center; cursor: default; }
 .tok { display: flex; flex-direction: column; align-items: center; }
 .tok.gap { margin-left: .5em; }
 .tok .r { font: 18px var(--mono); color: var(--muted); }
@@ -101,8 +102,9 @@ header > nav + .scripts { margin-left: auto; }
 .row-pick { font: 30px var(--jp); letter-spacing: .35em; padding: 4px 16px; border-radius: 8px; color: var(--faint); }
 .row-pick:hover { background: color-mix(in oklab, var(--faint) 45%, transparent); }
 .row-pick.gap { margin-top: 24px; }
-.row-intro { display: flex; gap: 36px; }
-.row-card { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 150px; cursor: default; }
+.row-intro { display: flex; gap: clamp(12px, 3vw, 36px); max-width: 100%; }
+.row-card { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 1 150px; min-width: 0; cursor: default; }
+.row-card .kana-pic { width: 100%; height: auto; }
 .hook { color: var(--muted); font-size: 14px; text-align: center; max-width: 360px; }
 .hook b { color: var(--ink); font-weight: 600; }
 .kana-pic { color: var(--ink); overflow: visible; }
@@ -122,16 +124,19 @@ header > nav + .scripts { margin-left: auto; }
 /* hovering a kana in study swaps in its picture, in place, no words */
 .hk { position: relative; display: inline-block; }
 .hk.on { color: transparent; }
-.hk .kana-pic { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.hk .kana-pic { width: 1.192em; height: 1.192em; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
 
 /* narrow screens: row cards stack, picture left, reading and hook right */
 @media (max-width: 720px) {
   .row-intro { flex-direction: column; gap: 14px; }
-  .row-card { display: grid; grid-template-columns: 96px 1fr; column-gap: 16px; align-items: center; width: auto; }
+  .row-card { display: grid; grid-template-columns: 96px 1fr; column-gap: 16px; align-items: center; flex: none; }
   .row-card .kana-pic { grid-row: span 2; width: 96px; height: 96px; }
   .row-card .reading { align-self: end; }
   .row-card .hook { align-self: start; text-align: left; }
   .study { padding-top: 6vh; }
+  .app { padding: 0 16px; }
+  nav { gap: 14px; }
+  header > .scripts, .due + .scripts { margin-left: 0; width: 100%; }
   /* grid: one column; a tapped kana opens a sheet at the bottom, tap it to close */
   .grid-page { grid-template-columns: 1fr; }
   .detail:empty { display: none; }
