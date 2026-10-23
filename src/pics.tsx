@@ -1,9 +1,4 @@
-// Pictures hidden in the kana's own shape: the strokes themselves must convincingly be the
-// thing, and give the whole syllable. Drawing an object next to a kana doesn't make it one. A picture either recolours part of the kana
-// (clip: the region shown in red) or adds shapes around it, never both.
-// Coordinates are tuned to Hiragino Sans, the font the kana are shown in, so a picture can
-// replace its kana in place; check visually after any change.
-// hook: one line of text; **bold** marks the part that gives the sound
+// Coordinates are tuned to Hiragino Sans: check visually after any change.
 type Pic = { hook: string; clip?: string; cls?: string; under?: string; over?: string }
 
 export const PICS: Record<string, Pic> = {
@@ -58,7 +53,6 @@ export const PICS: Record<string, Pic> = {
 const glyph = (k: string, attrs = '') =>
   `<text x="50" y="50" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-weight="400" font-size="84" text-anchor="middle" dominant-baseline="central" ${attrs}>${k}</text>`
 
-/** The kana with its picture, or just the kana in the same style when it has none. */
 export function KanaPic({ k, size = 160 }: { k: string; size?: number }) {
   const p = PICS[k]
   const id = `clip-${k.codePointAt(0)}`
@@ -68,7 +62,6 @@ export function KanaPic({ k, size = 160 }: { k: string; size?: number }) {
   return <svg className="kana-pic" width={size} height={size} viewBox="0 0 100 100" dangerouslySetInnerHTML={{ __html: svg }} />
 }
 
-/** The picture's one-line hint, with the part that gives the sound in bold. */
 export function Hook({ k }: { k: string }) {
   const h = PICS[k]?.hook
   if (!h) return null

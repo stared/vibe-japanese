@@ -23,7 +23,6 @@ export function Grid({ store }: { store: Store }) {
   const cell = (k: string, j: number) => {
     if (k === '・') return <td key={j} />
     const score = seen.has(k) ? recentScore(hists.get(k) ?? []) : null
-    // red (0) → green (1) by recent success
     const style = score === null ? undefined : { color: `color-mix(in oklab, var(--good) ${Math.round(score * 100)}%, var(--bad))` }
     return (
       <td key={j} style={style} className={(seen.has(k) ? 'known' : 'locked') + (sel === k ? ' sel' : '')}

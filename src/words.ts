@@ -5,11 +5,9 @@ export type Word = {
   kanji?: string
   en: string
   note?: string
-  /** override readings of token i, e.g. particle は → wa */
   read?: Record<number, string[]>
 }
 
-// Order matters: each word introduces at most a couple of new kana.
 export const WORDS: Word[] = [
   { kana: 'やま', kanji: '山', en: 'mountain', note: '山 is a picture of three peaks.' },
   { kana: 'かわ', kanji: '川', en: 'river', note: '川 is flowing water. Its cursive form became つ.' },
@@ -106,7 +104,6 @@ export const WORDS: Word[] = [
 
 export const toks = (w: Word): Tok[] => tokenize(w.kana, w.read)
 
-/** Kana characters (incl. small ones) first introduced by each word. */
 export const NEW_CHARS: Map<string, string[]> = (() => {
   const seen = new Set<string>()
   const m = new Map<string, string[]>()

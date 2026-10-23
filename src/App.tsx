@@ -15,7 +15,7 @@ type Tab = 'study' | 'rows' | 'grid' | 'words'
 export default function App() {
   const [store, setStore] = useState<Store>(load)
   const [tab, setTab] = useState<Tab>('study')
-  const [visit, setVisit] = useState(0) // clicking the open tab again resets it
+  const [visit, setVisit] = useState(0)
   const [now, setNow] = useState(Date.now())
   const [script, setScript] = useState<Script>(loadScript)
   useEffect(() => saveScript(script), [script])
@@ -68,21 +68,17 @@ function pick(s: Store, now: number): Phase {
   if (d) return { kind: 'quiz', word: d, first: false, drill: true }
   const fresh = WORDS.find(w => !s.cards[w.kana])
   if (!fresh) return due.length ? quiz(due[0].id) : { kind: 'idle' }
-  // kana already met (e.g. in rows) need no introduction
   const chars = NEW_CHARS.get(fresh.kana)!.filter(c => !s.kana[c])
   return chars.length ? { kind: 'kana', word: fresh, chars, i: 0 } : { kind: 'quiz', word: fresh, first: true }
 }
 const quiz = (id: string): Phase => ({ kind: 'quiz', word: WORDS.find(w => w.kana === id)!, first: false })
 
-/** Before any new kana, drill the known ones until solid: real words first, the bare kana for variety. */
 function drillItem(s: Store, r: Recent): Word | null {
   const learned = WORDS.filter(w => s.cards[w.kana])
   const known = [...new Set(learned.flatMap(w => toks(w).map(t => t.kana)))]
   const weak = known.filter(k => !solid(s.kana[k]))
-  // the least practised first, but not one just asked
   const k = weighted(weak, k => fade(r.kana.get(k)) / (1 + (s.kana[k]?.n ?? 0)))
   if (!k) return null
-  // a third of the time, any known word: keeps older kana in the mix
   const options: Word[] = Math.random() < 1 / 3 && learned.length > 2
     ? learned
     : [...learned.filter(w => toks(w).some(t => t.kana === k)), { kana: k, en: '' }]
@@ -119,7 +115,6 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     setPhase(pick(storeRef.current, Date.now()))
   }
 
-  // while idle, wake up when something becomes due
   useEffect(() => {
     if (phase.kind === 'idle') setPhase(pick(storeRef.current, now))
   }, [now])
@@ -129,7 +124,6 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     const given = normalize(input)
     const segs = given ? align(t, given) : null
     const wrong = segs ? segs.flatMap((sg, i) => (sg.ok ? [] : [i])) : t.map((_, i) => i)
-    // kana peeked at by hovering: shown as hinted, not scored
     const hint = [...new Set(hinted.current)].filter(i => !wrong.includes(i)).sort((a, b) => a - b)
     hinted.current = []
     let before = storeRef.current
@@ -142,7 +136,6 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     speak(w.kana)
   }
 
-  // correct answers move on by themselves, unless there is a note to read
   useEffect(() => {
     if (phase.kind !== 'reveal' || !phase.ok || (phase.first && phase.word.note)) return
     const t = setTimeout(next, 2500)
@@ -151,7 +144,6 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      // the Enter that submitted an answer must not also skip its reveal
       if (e.repeat || (e.target instanceof HTMLInputElement && e.key === 'Enter')) return
       if (phase.kind === 'kana' && e.key === 'Enter') {
         e.preventDefault()
@@ -216,7 +208,6 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     const good = match(t, normalize(input)).ok
     commit(logRetype(storeRef.current, w.kana, input, good, Date.now()))
     if (good) {
-      // after a correction, move on only when asked
       shownAt.current = Date.now()
       setInput('')
       setPhase({ ...phase, fixed: true })
@@ -281,7 +272,6 @@ export function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { 
   )
 }
 
-/** A kana that shows its picture while hovered. */
 function HoverKana({ k, onHint }: { k: string; onHint?: () => void }) {
   const [on, setOn] = useState(false)
   if (!PICS[k]) return <>{k}</>

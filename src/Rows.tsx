@@ -7,13 +7,12 @@ import { kanaHistories, recentScore } from './history'
 import { fade, recent, weighted } from './recency'
 import { AnswerInput, speak } from './App'
 
-// わ, を and ん share one row
 export const ROWS: string[] = [
   ...GRID.filter(r => r.c !== 'n' || r.cells[0] !== 'ん').map(r => r.cells.replace(/・/g, '') + (r.cells[0] === 'わ' ? 'ん' : '')),
   ...GRID_VOICED.map(r => r.cells),
 ]
-const GOAL = 3 // correct in a row, per kana, to finish a row
-const OLD_SHARE = 0.25 // how often a kana from an earlier mastered row comes back
+const GOAL = 3
+const OLD_SHARE = 0.25
 
 type Props = { store: Store; setStore: (s: Store) => void }
 
@@ -56,7 +55,6 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     setStore(s)
   }
 
-  // earlier rows already solid: mixed in so they don't fade
   const old = ROWS.slice(0, row).flatMap(r => [...r]).filter(k => solid(store.kana[k]))
 
   const next = (st = streak) => {
@@ -64,7 +62,6 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     setShake(0)
     const open = kana.filter(k => (st[k] ?? 0) < GOAL)
     if (!open.length) return setStep({ kind: 'done' })
-    // unfinished kana first; finished ones and earlier rows as spacers, so nothing comes right back
     const r = recent(storeRef.current.log)
     const oldW = (open.length * OLD_SHARE) / (1 - OLD_SHARE) / old.length
     const k = weighted([...kana, ...old], k => fade(r.kana.get(k)) * (open.includes(k) ? 1 : kana.includes(k) ? 0.3 : oldW)) ?? open[0]
@@ -83,7 +80,6 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     speak(k)
   }
 
-  // correct: stay a moment so it sinks in, then move on
   useEffect(() => {
     if (step.kind !== 'reveal' || !step.ok) return
     const t = setTimeout(() => next(), 1500)

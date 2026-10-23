@@ -1,4 +1,3 @@
-// Readings: [Polish (phonetic), Hepburn, ...other accepted spellings]
 export const BASE: Record<string, string[]> = {
   あ: ['a'], い: ['i'], う: ['u'], え: ['e'], お: ['o'],
   か: ['ka'], き: ['ki'], く: ['ku'], け: ['ke'], こ: ['ko'],
@@ -45,7 +44,6 @@ export const SCRIPTS: { id: Script; label: string }[] = [
 const SMALL: Record<string, string> = { ゃ: 'a', ゅ: 'u', ょ: 'o' }
 const IPA_V: Record<string, string> = { a: 'a', u: 'ɯ', o: 'o' }
 
-// き + ゃ: Polish keeps the i (kia, sia, cia, dzia); Hepburn uses y or drops it (kya, sha, cha, ja)
 function combo(base: string[], v: string): string[] {
   const out = new Set<string>()
   base.forEach((r, i) => {
@@ -100,7 +98,6 @@ export function tokenize(s: string, override?: Record<number, string[]>): Tok[] 
       const ni = toks[i + 1]?.ipa ?? ''
       t.ipa = /^[pbm]/.test(ni) ? 'm' : /^[kɡ]/.test(ni) ? 'ŋ' : /^[ntdɾzsɕɲ]/.test(ni) ? 'n' : 'ɴ'
     }
-    // long vowels: とう = tō, so the う may be dropped (tokyo, tōkyō)
     if ((t.kana === 'う' && /[ou]$/.test(prev)) || (t.kana === 'お' && /o$/.test(prev)) || (t.kana === 'い' && /e$/.test(prev)))
     {
       t.readings.push('')
@@ -117,7 +114,6 @@ export function normalize(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[\s'’\-.]/g, '')
 }
 
-/** Does the input spell the tokens? If not: which token broke first, and where in the input. */
 export function match(toks: Tok[], input: string): { ok: boolean; blame: number | null; at: number } {
   let pos = new Set([0])
   for (let i = 0; i < toks.length; i++) {
@@ -131,10 +127,8 @@ export function match(toks: Tok[], input: string): { ok: boolean; blame: number 
 
 export type Seg = { text: string; ok: boolean }
 
-/** Align the typed answer to the tokens with the fewest wrong tokens. */
 export function align(toks: Tok[], input: string): Seg[] {
   const n = toks.length, L = input.length
-  // cost[i][p]: min wrong tokens to read toks[i..] from input[p..]
   const cost = Array.from({ length: n + 1 }, () => new Array<number>(L + 1).fill(Infinity))
   const step = Array.from({ length: n + 1 }, () => new Array<Seg | null>(L + 1).fill(null))
   cost[n][L] = 0
@@ -165,7 +159,6 @@ export function align(toks: Tok[], input: string): Seg[] {
   return segs
 }
 
-/** Which kana did the reader probably see instead? E.g. typed "re" where ね was → れ. */
 export function misread(tok: Tok, rest: string): string | null {
   let best: [string, number] | null = null
   for (const [k, rs] of Object.entries(BASE)) {
@@ -175,7 +168,6 @@ export function misread(tok: Tok, rest: string): string | null {
   return best?.[0] ?? null
 }
 
-// The gojūon grid: consonant rows × vowel columns
 export const VOWELS = ['a', 'i', 'u', 'e', 'o']
 export const GRID: { c: string; cells: string }[] = [
   { c: '–', cells: 'あいうえお' },

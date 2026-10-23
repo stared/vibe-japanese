@@ -1,4 +1,3 @@
-// Each hiragana is a cursive simplification of a kanji used for its sound (man'yōgana).
 export const ORIGIN: Record<string, string> = {
   あ: '安', い: '以', う: '宇', え: '衣', お: '於',
   か: '加', き: '幾', く: '久', け: '計', こ: '己',
@@ -12,7 +11,6 @@ export const ORIGIN: Record<string, string> = {
   わ: '和', を: '遠', ん: '无',
 }
 
-// What the source kanji means. The kanji was borrowed for its sound only.
 export const ORIGIN_MEANING: Record<string, string> = {
   安: 'peaceful', 以: 'by means of', 宇: 'eaves; universe', 衣: 'clothing', 於: 'at, in',
   加: 'add', 幾: 'how many', 久: 'long time', 計: 'measure', 己: 'self',

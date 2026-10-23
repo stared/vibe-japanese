@@ -2,12 +2,11 @@ import type { Tok } from './kana'
 
 export const MIN = 60_000
 export const DAY = 86_400_000
-const STEPS = [1, 10] // learning steps, minutes
+const STEPS = [1, 10]
 
 export type Card = { id: string; due: number; step: number; ivl: number; ease: number; reps: number; lapses: number }
 export type KStat = { n: number; ema: number }
 export type Kind = 'new' | 'review' | 'drill' | 'retype'
-/** One attempt. id: the word (or bare kana) shown; miss: indices of misread tokens. */
 export type LogEntry = { t: number; id: string; ok: boolean; typed?: string; miss?: number[]; kind?: Kind; typo?: boolean; hint?: number[] }
 export type Store = {
   cards: Record<string, Card>
@@ -47,7 +46,7 @@ function updateKana(kana: Store['kana'], toks: Tok[], wrong: number[], hint: num
     out[k] = { n: s.n + 1, ema: s.ema * 0.7 + (hit ? 0.3 : 0) }
   }
   toks.forEach((t, i) => {
-    if (hint.includes(i) && !wrong.includes(i)) return // peeked: neither read nor missed
+    if (hint.includes(i) && !wrong.includes(i)) return
     const hit = !wrong.includes(i)
     bump(t.kana, hit)
     if (t.gem) bump('っ', hit)
@@ -57,7 +56,6 @@ function updateKana(kana: Store['kana'], toks: Tok[], wrong: number[], hint: num
 
 export type Attempt = { typed: string; kind: Kind; typo?: boolean; hint?: number[] }
 
-/** Record an answer. Drills move only kana strength; new words and reviews also reschedule. */
 export function record(s: Store, id: string, toks: Tok[], wrong: number[], now: number, a: Attempt): Store {
   const ok = wrong.length === 0
   const entry: LogEntry = { t: now, id, ok, typed: a.typed, miss: wrong, kind: a.kind, ...(a.typo ? { typo: true } : {}), ...(a.hint?.length ? { hint: a.hint } : {}) }
@@ -68,9 +66,7 @@ export function record(s: Store, id: string, toks: Tok[], wrong: number[], now: 
   }
 }
 
-/** Retypes after a mistake: logged, but they change nothing else. */
 export const logRetype = (s: Store, id: string, typed: string, ok: boolean, now: number): Store =>
   ({ ...s, log: [...s.log, { t: now, id, ok, typed, kind: 'retype' }] })
 
-// a kana counts as learned after enough reads with a mostly-correct recent streak
 export const solid = (st?: KStat) => !!st && st.n >= 6 && st.ema >= 0.85

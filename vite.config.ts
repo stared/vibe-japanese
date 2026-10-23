@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // Fixed port: progress lives in localStorage, which is per origin (port included).
-// Built for GitHub Pages at p.migdal.pl/vibe-japanese/.
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/vibe-japanese/' : '/',
   plugins: [react()],

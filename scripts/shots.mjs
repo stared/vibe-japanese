@@ -1,5 +1,3 @@
-// Drives the app through a study session and saves screenshots of each state.
-// Usage: node scripts/shots.mjs [url] [outDir]
 import puppeteer from 'puppeteer-core'
 import { mkdirSync } from 'fs'
 
@@ -16,7 +14,6 @@ const page = await browser.newPage()
 // --mute-audio doesn't silence macOS system speech: stub it out
 await page.evaluateOnNewDocument(() => Object.defineProperty(window, 'speechSynthesis', { value: { speak() {}, cancel() {} } }))
 await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: process.env.SCHEME ?? 'light' }])
-// SEED: JSON list of word ids to mark as learned and due now, first one due first
 const seed = JSON.parse(process.env.SEED ?? '[]')
 await page.evaluateOnNewDocument(ids => {
   if (sessionStorage.getItem('seeded')) return
