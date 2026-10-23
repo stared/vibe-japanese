@@ -49,6 +49,7 @@ header > nav + .gear { margin-left: auto; }
 .note { font-style: italic; }
 .origin { font-family: var(--serif); font-size: 26px; color: var(--ink); vertical-align: -3px; margin-left: 4px; }
 .meaning { font-size: 20px; }
+.new-word { color: var(--good); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: -10px; }
 .kanji { font-family: var(--serif); margin-right: 6px; }
 .confusion { font: 16px var(--mono); color: var(--muted); display: flex; align-items: baseline; gap: 6px; }
 .confusion .jp { font-family: var(--jp); font-size: 32px; color: var(--ink); margin-left: 8px; }

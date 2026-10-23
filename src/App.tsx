@@ -216,6 +216,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
           <span className="jp">{c}</span> {tokenize(c)[0][sc]}
         </div>
       ))}
+      {first && (ok || fixed) && <div className="new-word">new word</div>}
       {w.en && (
         <div className="meaning">
           {w.kanji && <span className="kanji">{w.kanji}</span>} {w.en}
