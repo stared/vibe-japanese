@@ -102,9 +102,8 @@ header > nav + .scripts { margin-left: auto; }
 .row-pick { font: 30px var(--jp); letter-spacing: .35em; padding: 4px 16px; border-radius: 8px; color: var(--faint); }
 .row-pick:hover { background: color-mix(in oklab, var(--faint) 45%, transparent); }
 .row-pick.gap { margin-top: 24px; }
-.row-intro { display: flex; gap: clamp(12px, 3vw, 36px); max-width: 100%; }
-.row-card { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 1 150px; min-width: 0; cursor: default; }
-.row-card .kana-pic { width: 100%; height: auto; }
+.row-intro { display: flex; gap: 36px; }
+.row-card { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 150px; cursor: default; }
 .hook { color: var(--muted); font-size: 14px; text-align: center; max-width: 360px; }
 .hook b { color: var(--ink); font-weight: 600; }
 .kana-pic { color: var(--ink); overflow: visible; }
@@ -126,13 +125,17 @@ header > nav + .scripts { margin-left: auto; }
 .hk.on { color: transparent; }
 .hk .kana-pic { width: 1.192em; height: 1.192em; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
 
-/* narrow screens: row cards stack, picture left, reading and hook right */
-@media (max-width: 720px) {
+/* five row cards don't fit side by side: stack them, picture left, reading and hook right */
+@media (max-width: 1000px) {
   .row-intro { flex-direction: column; gap: 14px; }
-  .row-card { display: grid; grid-template-columns: 96px 1fr; column-gap: 16px; align-items: center; flex: none; }
+  .row-card { display: grid; grid-template-columns: 96px 1fr; column-gap: 16px; align-items: center; width: auto; }
   .row-card .kana-pic { grid-row: span 2; width: 96px; height: 96px; }
   .row-card .reading { align-self: end; }
-  .row-card .hook { align-self: start; text-align: left; }
+  .row-card .hook { align-self: start; text-align: left; max-width: none; }
+}
+
+/* phones */
+@media (max-width: 720px) {
   .study { padding-top: 6vh; }
   .app { padding: 0 16px; }
   nav { gap: 14px; }
