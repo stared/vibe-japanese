@@ -115,7 +115,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
   }
 
   useEffect(() => {
-    if (phase.kind !== 'reveal' || !phase.ok || (phase.first && phase.word.note)) return
+    if (phase.kind !== 'reveal' || !phase.ok || phase.first) return
     const t = setTimeout(next, 2500)
     return () => clearTimeout(t)
   }, [phase])
@@ -224,7 +224,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
       )}
       {first && w.note && <p className="sub note">{w.note}</p>}
       {ok || fixed
-        ? (fixed || (first && w.note)) && <button className="next" onClick={next}>next</button>
+        ? (fixed || first) && <button className="next" onClick={next}>next</button>
         : <>
             <AnswerInput key={shake} shake={shake > 0} value={input} onChange={setInput} onEnter={retype} />
             <button className="hint" onClick={() => {
