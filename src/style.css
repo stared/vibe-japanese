@@ -110,6 +110,8 @@ header > nav + .scripts { margin-left: auto; }
 .kana-pic .pw2 { fill: color-mix(in oklab, #4a90c0 45%, var(--paper)); }
 .kana-pic .ps { fill: none; stroke: var(--accent); stroke-linecap: round; stroke-linejoin: round; }
 .kana-pic .pg { fill: #d9a400; }
+.kana-pic .pgr { fill: #4f9a45; }
+.kana-pic .pbr { fill: #9a6a3a; }
 .kana-pic .pn { fill: #f0dfa8; }
 .kana-pic .pq { fill: none; stroke: color-mix(in oklab, #4a90c0 45%, var(--paper)); stroke-width: 2.5; stroke-linecap: round; }
 .kana-pic .pb { fill: color-mix(in oklab, #8a6a40 35%, var(--paper)); }

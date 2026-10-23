@@ -1,5 +1,5 @@
 // Coordinates are tuned to Hiragino Sans: check visually after any change.
-type Pic = { hook: string; clip?: string; cls?: string; under?: string; over?: string }
+type Pic = { hook: string; clip?: string; cls?: string; clip2?: string; cls2?: string; under?: string; over?: string }
 
 export const PICS: Record<string, Pic> = {
   の: { hook: 'a “**no**” sign', clip: 'M0 0H100V100H0Z M47.2 26.5H55.8L54.4 35L52.4 45L49.3 55L45.9 63L43.2 68H32.8L36.8 63L40.6 55L43.8 45L46 35Z' },
@@ -13,6 +13,7 @@ export const PICS: Record<string, Pic> = {
   あ: { hook: 'an **ɑ** inside', clip: 'M0 44H44.5V100H0Z' },
   お: { hook: 'an **o** inside', clip: 'M41 44H100V100H41Z' },
   う: { hook: 'a **U**-turn sign', over: '<path class="pa" d="M26 84.5 L37 76.5 L38.5 92Z"/>' },
+  な: { hook: 'a sprouting seed: **na**sionko', cls: 'pgr', clip: 'M57 20H92V59.5H57Z', cls2: 'pbr', clip2: 'M33 56H57V59.5H92V90H33Z' },
   ぬ: { hook: '**nu**dle in a bowl', under: '<path class="pb" d="M8 70 H92 C90 90 72 98 50 98 C28 98 10 90 8 70Z"/>' },
   て: { hook: 'a **T**: in Polish the letter is called “**te**”', clip: 'M0 0H100V35H66V70H32V35H0Z' },
   ね: { hook: 'a cursive “**ne**”', clip: 'M40 0H100V100H27V40H40Z' },
@@ -52,11 +53,15 @@ export const PICS: Record<string, Pic> = {
 const glyph = (k: string, attrs = '') =>
   `<text x="50" y="50" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-weight="400" font-size="84" text-anchor="middle" dominant-baseline="central" ${attrs}>${k}</text>`
 
+const recolor = (k: string, id: string, clip: string, cls: string) =>
+  `<clipPath id="${id}"><path d="${clip}" clip-rule="evenodd"/></clipPath>${glyph(k, `class="${cls}" clip-path="url(#${id})"`)}`
+
 export function KanaPic({ k, size = 160 }: { k: string; size?: number }) {
   const p = PICS[k]
   const id = `clip-${k.codePointAt(0)}`
   const svg = (p?.under ?? '') + glyph(k, 'fill="currentColor"') +
-    (p?.clip ? `<clipPath id="${id}"><path d="${p.clip}" clip-rule="evenodd"/></clipPath>${glyph(k, `class="${p.cls ?? 'pa'}" clip-path="url(#${id})"`)}` : '') +
+    (p?.clip ? recolor(k, id, p.clip, p.cls ?? 'pa') : '') +
+    (p?.clip2 ? recolor(k, id + 'b', p.clip2, p.cls2 ?? 'pa') : '') +
     (p?.over ?? '')
   return <svg className="kana-pic" width={size} height={size} viewBox="0 0 100 100" dangerouslySetInnerHTML={{ __html: svg }} />
 }
