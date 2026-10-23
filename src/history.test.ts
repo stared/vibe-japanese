@@ -9,6 +9,7 @@ test('kana history counts rows drills, skips peeked kana, keeps old correct answ
     { t: 2, id: 'やま', ok: true, miss: [], kind: 'review', hint: [1] },
     { t: 3, id: 'やま', ok: true },
     { t: 4, id: 'やま', ok: false },
+    { t: 5, id: 'drill', ok: true },
   ]
   const h = kanaHistories(log)
   expect(h.get('か')).toEqual([true, false])
