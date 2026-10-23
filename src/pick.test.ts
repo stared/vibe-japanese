@@ -29,3 +29,11 @@ test('study rarely asks the same thing again soon', () => {
   expect(mean(r => near(r, x => [x.id]))).toBeLessThan(0.04)
   expect(mean(r => near(r, x => x.kana))).toBeLessThan(0.15)
 })
+
+test('study spreads over many words and keeps bringing new ones', () => {
+  const runs = Array.from({ length: 20 }, () => session(200))
+  const mean = (f: (seq: Step[]) => number) => runs.reduce((t, r) => t + f(r), 0) / runs.length
+  const distinct = (seq: Step[]) => new Set(seq.slice(100, 130).map(x => x.id)).size
+  expect(mean(distinct)).toBeGreaterThan(22)
+  expect(mean(seq => seq.filter(x => x.kind === 'new').length)).toBeGreaterThan(35)
+})
