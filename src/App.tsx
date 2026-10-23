@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BASE, SCRIPTS, align, match, misread, normalize, tokenize, type Script, type Seg, type Tok } from './kana'
+import { BASE, align, match, misread, normalize, tokenize, type Script, type Seg, type Tok } from './kana'
 import { ScriptCtx, loadScript, saveScript, useScript } from './script'
 import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, NEW_CHARS, toks, type Word } from './words'
@@ -7,10 +7,11 @@ import { load, logRetype, newCard, record, save, solid, MIN, DAY, type Attempt, 
 import { Grid } from './Grid'
 import { WordList } from './WordList'
 import { Rows } from './Rows'
+import { Settings } from './Settings'
 import { Hook, KanaPic, PICS } from './pics'
 import { fade, recent, weighted, type Recent } from './recency'
 
-type Tab = 'study' | 'rows' | 'grid' | 'words'
+type Tab = 'study' | 'rows' | 'grid' | 'words' | 'settings'
 
 export default function App() {
   const [store, setStore] = useState<Store>(load)
@@ -37,16 +38,13 @@ export default function App() {
           ))}
         </nav>
         {due > 0 && <span className="due">{due} due</span>}
-        <span className="scripts">
-          {SCRIPTS.map(sc => (
-            <button key={sc.id} className={script === sc.id ? 'on' : ''} onMouseDown={e => e.preventDefault()} onClick={() => setScript(sc.id)}>{sc.label}</button>
-          ))}
-        </span>
+        <button className={'gear' + (tab === 'settings' ? ' on' : '')} onClick={() => setTab('settings')}>settings</button>
       </header>
       {tab === 'study' && <Study store={store} setStore={setStore} now={now} />}
       {tab === 'rows' && <Rows key={visit} store={store} setStore={setStore} />}
       {tab === 'grid' && <Grid store={store} />}
-      {tab === 'words' && <WordList store={store} onReplace={setStore} />}
+      {tab === 'words' && <WordList store={store} />}
+      {tab === 'settings' && <Settings store={store} onReplace={setStore} script={script} setScript={setScript} />}
     </div>
     </ScriptCtx.Provider>
   )
