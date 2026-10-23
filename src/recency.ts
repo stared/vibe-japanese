@@ -3,7 +3,7 @@ import { WORDS, toks } from './words'
 
 const TAU = 3
 const WINDOW = 15
-export const fade = (ago?: number) => (ago === undefined ? 1 : 1 - Math.exp(-(ago - 1) / TAU))
+export const fade = (ago?: number, tau = TAU) => (ago === undefined ? 1 : 1 - Math.exp(-(ago - 1) / tau))
 
 const kanaOf = (id: string) => toks(WORDS.find(w => w.kana === id) ?? { kana: id, en: '' }).map(t => t.kana)
 

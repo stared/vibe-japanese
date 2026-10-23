@@ -1,0 +1,31 @@
+import { expect, test } from 'vitest'
+import { pick } from './pick'
+import { newCard, record, type Store } from './srs'
+import { toks } from './words'
+
+function session(n: number, seconds = 8) {
+  let s: Store = { cards: {}, kana: {}, log: [] }
+  let now = Date.parse('2026-01-01')
+  const seq: { id: string; kana: string[]; kind: string }[] = []
+  for (let i = 0; i < n; i++) {
+    const p = pick(s, now)
+    if (p.kind === 'idle') break
+    const w = p.word, t = toks(w)
+    if (p.kind === 'new') s = { ...s, cards: { ...s.cards, [w.kana]: newCard(w.kana, now) } }
+    s = record(s, w.kana, t, [], now, { typed: '', kind: p.kind === 'drill' ? 'drill' : p.kind === 'new' ? 'new' : 'review' })
+    seq.push({ id: w.kana, kana: t.map(x => x.kana), kind: p.kind })
+    now += seconds * 1000
+  }
+  return seq
+}
+
+type Step = ReturnType<typeof session>[number]
+const near = (seq: Step[], key: (x: Step) => string[]) =>
+  seq.filter((x, i) => i >= 2 && key(x).some(k => key(seq[i - 1]).includes(k) || key(seq[i - 2]).includes(k))).length / seq.length
+
+test('study rarely asks the same thing again soon', () => {
+  const runs = Array.from({ length: 30 }, () => session(300))
+  const mean = (f: (seq: Step[]) => number) => runs.reduce((t, r) => t + f(r), 0) / runs.length
+  expect(mean(r => near(r, x => [x.id]))).toBeLessThan(0.04)
+  expect(mean(r => near(r, x => x.kana))).toBeLessThan(0.15)
+})

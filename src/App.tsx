@@ -9,7 +9,7 @@ import { WordList } from './WordList'
 import { Rows } from './Rows'
 import { Settings } from './Settings'
 import { Hook, KanaPic, PICS } from './pics'
-import { fade, recent, weighted, type Recent } from './recency'
+import { pick, type Pick } from './pick'
 
 type Tab = 'study' | 'rows' | 'grid' | 'words' | 'settings'
 
@@ -57,31 +57,11 @@ type Phase =
   | ({ kind: 'reveal'; word: Word; first: boolean; drill?: boolean } & Result)
   | { kind: 'idle' }
 
-function pick(s: Store, now: number): Phase {
-  const r = recent(s.log)
-  const due = Object.values(s.cards).filter(c => c.due <= now).sort((a, b) => a.due - b.due)
-  const c = due.find(c => Math.random() < fade(r.ids.get(c.id)))
-  if (c) return quiz(c.id)
-  const d = drillItem(s, r)
-  if (d) return { kind: 'quiz', word: d, first: false, drill: true }
-  const fresh = WORDS.find(w => !s.cards[w.kana])
-  if (!fresh) return due.length ? quiz(due[0].id) : { kind: 'idle' }
-  const chars = NEW_CHARS.get(fresh.kana)!.filter(c => !s.kana[c])
-  return chars.length ? { kind: 'kana', word: fresh, chars, i: 0 } : { kind: 'quiz', word: fresh, first: true }
-}
-const quiz = (id: string): Phase => ({ kind: 'quiz', word: WORDS.find(w => w.kana === id)!, first: false })
-
-function drillItem(s: Store, r: Recent): Word | null {
-  const learned = WORDS.filter(w => s.cards[w.kana])
-  const known = [...new Set(learned.flatMap(w => toks(w).map(t => t.kana)))]
-  const weak = known.filter(k => !solid(s.kana[k]))
-  const k = weighted(weak, k => fade(r.kana.get(k)) / (1 + (s.kana[k]?.n ?? 0)))
-  if (!k) return null
-  const options: Word[] = Math.random() < 1 / 3 && learned.length > 2
-    ? learned
-    : [...learned.filter(w => toks(w).some(t => t.kana === k)), { kana: k, en: '' }]
-  return weighted(options, w => fade(r.ids.get(w.kana))) ?? null
-}
+const toPhase = (p: Pick): Phase =>
+  p.kind === 'review' ? { kind: 'quiz', word: p.word, first: false }
+  : p.kind === 'drill' ? { kind: 'quiz', word: p.word, first: false, drill: true }
+  : p.kind === 'new' ? (p.chars.length ? { kind: 'kana', word: p.word, chars: p.chars, i: 0 } : { kind: 'quiz', word: p.word, first: true })
+  : { kind: 'idle' }
 
 export function speak(text: string) {
   if (!('speechSynthesis' in window)) return
@@ -94,7 +74,7 @@ export function speak(text: string) {
 
 function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) => void; now: number }) {
   const sc = useScript()
-  const [phase, setPhase] = useState<Phase>(() => pick(store, Date.now()))
+  const [phase, setPhase] = useState<Phase>(() => toPhase(pick(store, Date.now())))
   const [input, setInput] = useState('')
   const [shake, setShake] = useState(0)
   const storeRef = useRef(store)
@@ -110,11 +90,11 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     hinted.current = []
     setInput('')
     setShake(0)
-    setPhase(pick(storeRef.current, Date.now()))
+    setPhase(toPhase(pick(storeRef.current, Date.now())))
   }
 
   useEffect(() => {
-    if (phase.kind === 'idle') setPhase(pick(storeRef.current, now))
+    if (phase.kind === 'idle') setPhase(toPhase(pick(storeRef.current, now)))
   }, [now])
 
   const submit = (w: Word, first: boolean, isDrill = false) => {
