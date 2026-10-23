@@ -27,7 +27,7 @@ export function Grid({ store }: { store: Store }) {
     const style = score === null ? undefined : { color: `color-mix(in oklab, var(--good) ${Math.round(score * 100)}%, var(--bad))` }
     return (
       <td key={j} style={style} className={(seen.has(k) ? 'known' : 'locked') + (sel === k ? ' sel' : '')}
-        onClick={() => setSel(sel === k ? null : k)} onMouseEnter={() => setHover(k)} onMouseLeave={() => setHover(null)}>
+        onClick={() => setSel(sel === k ? null : k)} onPointerEnter={e => e.pointerType === 'mouse' && setHover(k)} onPointerLeave={() => setHover(null)}>
         {k}
       </td>
     )
@@ -46,7 +46,7 @@ export function Grid({ store }: { store: Store }) {
           </section>
         ))}
       </div>
-      <aside className="detail">{(hover ?? sel) && <Detail k={(hover ?? sel)!} store={store} hist={hists.get((hover ?? sel)!) ?? []} />}</aside>
+      <aside className="detail" onClick={() => setSel(null)}>{(hover ?? sel) && <Detail k={(hover ?? sel)!} store={store} hist={hists.get((hover ?? sel)!) ?? []} />}</aside>
     </main>
   )
 }

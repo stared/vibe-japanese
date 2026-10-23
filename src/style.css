@@ -123,3 +123,25 @@ header > nav + .scripts { margin-left: auto; }
 .hk { position: relative; display: inline-block; }
 .hk.on { color: transparent; }
 .hk .kana-pic { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+
+/* narrow screens: row cards stack, picture left, reading and hook right */
+@media (max-width: 720px) {
+  .row-intro { flex-direction: column; gap: 14px; }
+  .row-card { display: grid; grid-template-columns: 96px 1fr; column-gap: 16px; align-items: center; width: auto; }
+  .row-card .kana-pic { grid-row: span 2; width: 96px; height: 96px; }
+  .row-card .reading { align-self: end; }
+  .row-card .hook { align-self: start; text-align: left; }
+  .study { padding-top: 6vh; }
+  /* grid: one column; a tapped kana opens a sheet at the bottom, tap it to close */
+  .grid-page { grid-template-columns: 1fr; }
+  .detail:empty { display: none; }
+  .detail { position: fixed; left: 0; right: 0; bottom: 0; top: auto; max-height: 60vh; overflow-y: auto; padding: 16px 24px 24px;
+    background: var(--paper); border-top: 1px solid var(--faint); box-shadow: 0 -8px 24px rgb(0 0 0 / .12); }
+  .detail:not(:empty) { display: grid; grid-template-columns: 1fr 120px; grid-auto-flow: dense; column-gap: 16px; row-gap: 6px; align-items: start; }
+  .detail > * { grid-column: 1; }
+  .detail-kana { font-size: 56px; line-height: 1; }
+  .detail .reading { font-size: 22px; }
+  .detail .kana-pic { grid-column: 2; grid-row: 1 / span 3; width: 110px; height: 110px; justify-self: center; }
+  .detail .hook { grid-column: 2; grid-row: 4; text-align: center; font-size: 13px; }
+  .mini-words { margin: 0; }
+}
