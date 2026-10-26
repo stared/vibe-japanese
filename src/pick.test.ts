@@ -3,17 +3,18 @@ import { pick } from './pick'
 import { newCard, record, type Store } from './srs'
 import { toks } from './words'
 
-function session(n: number, seconds = 8) {
+function session(n: number, err = 0, seconds = 8) {
   let s: Store = { cards: {}, kana: {}, log: [] }
   let now = Date.parse('2026-01-01')
-  const seq: { id: string; kana: string[]; kind: string }[] = []
+  const seq: { id: string; kana: string[]; kind: string; ok: boolean }[] = []
   for (let i = 0; i < n; i++) {
     const p = pick(s, now)
     if (p.kind === 'idle') break
     const w = p.word, t = toks(w)
     if (p.kind === 'new') s = { ...s, cards: { ...s.cards, [w.kana]: newCard(w.kana, now) } }
-    s = record(s, w.kana, t, [], now, { typed: '', kind: p.kind === 'drill' ? 'drill' : p.kind === 'new' ? 'new' : 'review' })
-    seq.push({ id: w.kana, kana: t.map(x => x.kana), kind: p.kind })
+    const ok = Math.random() >= err
+    s = record(s, w.kana, t, ok ? [] : [0], now, { typed: '', kind: p.kind === 'drill' ? 'drill' : p.kind === 'new' ? 'new' : 'review' })
+    seq.push({ id: w.kana, kana: t.map(x => x.kana), kind: p.kind, ok })
     now += seconds * 1000
   }
   return seq
@@ -36,4 +37,10 @@ test('study spreads over many words and keeps bringing new ones', () => {
   const distinct = (seq: Step[]) => new Set(seq.slice(100, 130).map(x => x.id)).size
   expect(mean(distinct)).toBeGreaterThan(22)
   expect(mean(seq => seq.filter(x => x.kind === 'new').length)).toBeGreaterThan(35)
+})
+
+test('a failed word comes back soon', () => {
+  const lags = Array.from({ length: 20 }, () => session(200, 0.15)).flatMap(seq =>
+    seq.flatMap((x, i) => x.ok ? [] : [seq.findIndex((y, j) => j > i && y.id === x.id) - i]))
+  expect(lags.filter(l => l > 0 && l <= 6).length / lags.length).toBeGreaterThan(0.75)
 })
