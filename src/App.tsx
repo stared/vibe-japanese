@@ -8,7 +8,7 @@ import { Grid } from './Grid'
 import { WordList } from './WordList'
 import { Rows } from './Rows'
 import { Settings } from './Settings'
-import { Hook, KanaPic, PICS } from './pics'
+import { Hook, KanaPic, pic } from './pics'
 import { pick, type Pick } from './pick'
 
 type Tab = 'study' | 'rows' | 'grid' | 'words' | 'settings'
@@ -158,7 +158,7 @@ function Study({ store, setStore, now }: { store: Store; setStore: (s: Store) =>
     }
     return (
       <main className="study">
-        {PICS[k] ? <KanaPic k={k} size={150} /> : <div className="word">{k}</div>}
+        {pic(k) ? <KanaPic k={k} size={150} /> : <div className="word">{k}</div>}
         {reading && <div className="reading">{reading}</div>}
         <Hook k={k} />
         {ORIGIN[k] && <div className="sub">from <span className="origin">{ORIGIN[k]}</span> meaning ‘{ORIGIN_MEANING[ORIGIN[k]]}’</div>}
@@ -253,7 +253,7 @@ export function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { 
 
 function HoverKana({ k, onHint }: { k: string; onHint?: () => void }) {
   const [on, setOn] = useState(false)
-  if (!PICS[k]) return <>{k}</>
+  if (!pic(k)) return <>{k}</>
   return (
     <span className={'hk' + (on ? ' on' : '')} onMouseEnter={() => { setOn(true); onHint?.() }} onMouseLeave={() => setOn(false)}>
       {k}

@@ -50,6 +50,8 @@ export const PICS: Record<string, Pic> = {
   ま: { hook: 'a sushi roll: **ma**ki', under: '<ellipse style="fill:#2f4a32" cx="39" cy="71.5" rx="20" ry="15"/><ellipse class="pn" cx="39" cy="71.5" rx="14" ry="10"/><ellipse style="fill:#f08a5d" cx="36" cy="71.5" rx="5" ry="2.8"/><ellipse style="fill:#6fae5a" cx="43.5" cy="71.5" rx="2.4" ry="2.1"/>' },
 }
 
+export const pic = (k: string): Pic | undefined => PICS[k] ?? PICS[k.normalize('NFD')[0]]
+
 const glyph = (k: string, attrs = '') =>
   `<text x="50" y="50" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-weight="400" font-size="84" text-anchor="middle" dominant-baseline="central" ${attrs}>${k}</text>`
 
@@ -57,7 +59,7 @@ const recolor = (k: string, id: string, clip: string, cls: string) =>
   `<clipPath id="${id}"><path d="${clip}" clip-rule="evenodd"/></clipPath>${glyph(k, `class="${cls}" clip-path="url(#${id})"`)}`
 
 export function KanaPic({ k, size = 160 }: { k: string; size?: number }) {
-  const p = PICS[k]
+  const p = pic(k)
   const id = `clip-${k.codePointAt(0)}`
   const svg = (p?.under ?? '') + glyph(k, 'fill="currentColor"') +
     (p?.clip ? recolor(k, id, p.clip, p.cls ?? 'pa') : '') +
@@ -67,7 +69,7 @@ export function KanaPic({ k, size = 160 }: { k: string; size?: number }) {
 }
 
 export function Hook({ k }: { k: string }) {
-  const h = PICS[k]?.hook
+  const h = pic(k)?.hook
   if (!h) return null
   return <div className="hook">{h.split('**').map((t, i) => i % 2 ? <b key={i}>{t}</b> : t)}</div>
 }
