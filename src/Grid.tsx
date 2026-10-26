@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { GRID, GRID_VOICED, VOWELS, YOON_BASES, YOON_SMALL } from './kana'
+import { GRID, GRID_VOICED, VOWELS, YOON_BASES, YOON_SMALL, toKata } from './kana'
 import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, toks } from './words'
 import type { Store } from './srs'
@@ -14,6 +14,7 @@ const TABLES = [
 ]
 
 export function Grid({ store }: { store: Store }) {
+  const [kata, setKata] = useState(false)
   const [sel, setSel] = useState<string | null>(null)
   const [hover, setHover] = useState<string | null>(null)
   const learned = WORDS.filter(w => store.cards[w.kana])
@@ -35,11 +36,14 @@ export function Grid({ store }: { store: Store }) {
   return (
     <main className="grid-page">
       <div className="tables">
+        <div className="script-pick">
+          {['ひらがな', 'カタカナ'].map((l, i) => <button key={l} className={kata === !!i ? 'on' : ''} onClick={() => setKata(!!i)}>{l}</button>)}
+        </div>
         {TABLES.map((tb, i) => (
           <section key={i}>
             <table className="kana-grid">
               <thead><tr><th />{tb.head.map(v => <th key={v}>{v}</th>)}</tr></thead>
-              <tbody>{tb.rows.map((r, ri) => <tr key={ri}><th>{r.c.length > 1 || /[ぁ-ん]/.test(r.c) ? '' : r.c}</th>{r.cells.map(cell)}</tr>)}</tbody>
+              <tbody>{tb.rows.map((r, ri) => <tr key={ri}><th>{r.c.length > 1 || /[ぁ-ん]/.test(r.c) ? '' : r.c}</th>{r.cells.map(c => kata ? toKata(c) : c).map(cell)}</tr>)}</tbody>
             </table>
             <p className="sub">{tb.note}</p>
           </section>

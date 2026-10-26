@@ -25,6 +25,7 @@ header { display: flex; flex-wrap: wrap; row-gap: 6px; align-items: baseline; pa
 nav { display: flex; gap: 20px; }
 nav button { color: var(--muted); font-size: 14px; }
 nav button.on { color: var(--ink); }
+.script-pick { display: flex; gap: 16px; margin-bottom: 8px; } .script-pick button { font: 16px var(--jp); color: var(--muted); } .script-pick button.on { color: var(--ink); }
 .due { margin-left: auto; font-size: 14px; color: var(--muted); }
 .gear { margin-left: 24px; color: var(--muted); font-size: 14px; }
 header > nav + .gear { margin-left: auto; }
@@ -45,6 +46,7 @@ header > nav + .gear { margin-left: auto; }
 .tok .typed.bad { color: var(--bad); text-decoration: line-through; }
 .tok.bad .r { color: var(--ink); }
 .reading { font: 28px var(--mono); }
+.twin { font: 24px var(--jp); color: var(--muted); }
 .sub { color: var(--muted); font-size: 15px; margin: 0; max-width: 480px; text-align: center; }
 .note { font-style: italic; }
 .origin { font-family: var(--serif); font-size: 26px; color: var(--ink); vertical-align: -3px; margin-left: 4px; }

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { align, display, match, normalize, tokenize, BASE } from './kana'
+import { align, display, match, normalize, tokenize, BASE, GRID, isKata, toHira, toKata } from './kana'
 import { WORDS, NEW_CHARS, toks } from './words'
 
 test('every word accepts its own Polish and Hepburn reading', () => {
@@ -25,9 +25,10 @@ test('variants', () => {
   expect(match(tokenize('さくら'), 'sakira').blame).toBe(1)
 })
 
-test('curriculum covers all base and voiced kana', () => {
+test('curriculum covers all hiragana and base katakana', () => {
   const all = new Set(WORDS.flatMap(w => [...w.kana]))
-  const missing = Object.keys(BASE).filter(k => !all.has(k))
+  const want = Object.keys(BASE).filter(k => !isKata(k) || (k === toKata(GRID.map(r => r.cells).join('').match(toHira(k))?.[0] ?? '') && k !== 'ヲ'))
+  const missing = want.filter(k => !all.has(k))
   expect(missing).toEqual([])
   for (const w of WORDS) expect(NEW_CHARS.get(w.kana)!.length, w.kana).toBeLessThanOrEqual(3)
 })
@@ -40,6 +41,20 @@ test('align marks only the misread kana', () => {
   expect(a('こんにちは', 'konnichiwa', { 4: ['ła', 'wa', 'ha'] })).toBe('+ko +n +ni +chi +wa')
   expect(a('やま', 'ja')).toBe('+ja -')
   expect(a('やま', 'jamaa')).toBe('+ja -maa')
+})
+
+test('katakana', () => {
+  const ok = (k: string, s: string) => match(tokenize(k), normalize(s)).ok
+  expect(display(tokenize('コーヒー'))).toBe('koohii')
+  expect(display(tokenize('コーヒー'), 'ipa')).toBe('koːçiː')
+  expect(ok('コーヒー', 'kohi')).toBe(true)
+  expect(ok('タクシー', 'takushii')).toBe(true)
+  expect(ok('チケット', 'chiketto')).toBe(true)
+  expect(ok('フォーク', 'fooku')).toBe(true)
+  expect(ok('メニュー', 'menyuu')).toBe(true)
+  expect(ok('メニュー', 'meniu')).toBe(true)
+  expect(ok('ワルシャワ', 'warushawa')).toBe(true)
+  expect(display(tokenize('コンビニ'), 'ipa')).toBe('kombʲiɲi')
 })
 
 test('IPA', () => {

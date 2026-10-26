@@ -9,6 +9,16 @@ export const ORIGIN: Record<string, string> = {
   や: '也', ゆ: '由', よ: '与',
   ら: '良', り: '利', る: '留', れ: '礼', ろ: '呂',
   わ: '和', を: '遠', ん: '无',
+  ア: '阿', イ: '伊', ウ: '宇', エ: '江', オ: '於',
+  カ: '加', キ: '幾', ク: '久', ケ: '介', コ: '己',
+  サ: '散', シ: '之', ス: '須', セ: '世', ソ: '曽',
+  タ: '多', チ: '千', ツ: '川', テ: '天', ト: '止',
+  ナ: '奈', ニ: '二', ヌ: '奴', ネ: '祢', ノ: '乃',
+  ハ: '八', ヒ: '比', フ: '不', ヘ: '部', ホ: '保',
+  マ: '末', ミ: '三', ム: '牟', メ: '女', モ: '毛',
+  ヤ: '也', ユ: '由', ヨ: '与',
+  ラ: '良', リ: '利', ル: '流', レ: '礼', ロ: '呂',
+  ワ: '和', ヲ: '乎', ン: '尓',
 }
 
 export const ORIGIN_MEANING: Record<string, string> = {
@@ -22,6 +32,9 @@ export const ORIGIN_MEANING: Record<string, string> = {
   也: 'also', 由: 'reason', 与: 'give',
   良: 'good', 利: 'profit', 留: 'stay', 礼: 'bow, thanks', 呂: 'spine',
   和: 'harmony', 遠: 'far', 无: 'nothing',
+  阿: 'corner; the Buddhist “a”', 伊: 'that one', 江: 'inlet, bay', 介: 'between', 散: 'scatter',
+  須: 'must', 多: 'many', 千: 'thousand', 二: 'two', 八: 'eight', 三: 'three',
+  牟: 'a cow’s moo', 流: 'flow', 乎: 'a question particle', 尓: 'you',
 }
 
 export const NOTE: Record<string, string> = {
@@ -40,5 +53,8 @@ export const NOTE: Record<string, string> = {
   ゃ: 'Small や: glides into the previous kana (き + ゃ → kia).',
   ゅ: 'Small ゆ: glides into the previous kana (し + ゅ → siu).',
   ょ: 'Small よ: glides into the previous kana (き + ょ → kio).',
+  ー: 'Long-vowel bar: stretch the vowel before it (コーヒー → koohii).',
+  ッ: 'Small ツ: doubles the next consonant, as っ does (チケット).',
+  ヲ: 'Like を: read o. Almost never used in katakana.',
   ぱ: '゜ (maru) turns h into p. Old Japanese h was once p.',
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { GRID, GRID_VOICED, match, misread, normalize, tokenize } from './kana'
+import { GRID, GRID_VOICED, isKata, match, misread, normalize, toHira, toKata, tokenize } from './kana'
 import { record, logRetype, solid, type Store } from './srs'
 import { useScript } from './script'
 import { Hook, KanaPic, PICS } from './pics'
@@ -7,10 +7,12 @@ import { kanaHistories, recentScore } from './history'
 import { fade, recent, weighted } from './recency'
 import { AnswerInput, speak } from './App'
 
-export const ROWS: string[] = [
+const HIRA_ROWS: string[] = [
   ...GRID.filter(r => r.c !== 'n' || r.cells[0] !== 'ん').map(r => r.cells.replace(/・/g, '') + (r.cells[0] === 'わ' ? 'ん' : '')),
   ...GRID_VOICED.map(r => r.cells),
 ]
+export const ROWS: string[] = [...HIRA_ROWS, ...HIRA_ROWS.map(toKata)]
+const GAPS = [GRID.length - 1, HIRA_ROWS.length, HIRA_ROWS.length + GRID.length - 1]
 const GOAL = 3
 const OLD_SHARE = 0.25
 
@@ -23,7 +25,7 @@ export function Rows({ store, setStore }: Props) {
   return (
     <main className="rows-page">
       {ROWS.map((r, i) => (
-        <button key={i} className={'row-pick' + (i === GRID.length - 1 ? ' gap' : '')} onClick={() => setRow(i)}>
+        <button key={i} className={'row-pick' + (GAPS.includes(i) ? ' gap' : '')} onClick={() => setRow(i)}>
           {[...r].map(k => {
             const score = store.kana[k] ? recentScore(hists.get(k) ?? []) : null
             return <span key={k} style={score === null ? undefined : { color: `color-mix(in oklab, var(--good) ${Math.round(score * 100)}%, var(--bad))` }}>{k}</span>
@@ -55,7 +57,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     setStore(s)
   }
 
-  const old = ROWS.slice(0, row).flatMap(r => [...r]).filter(k => solid(store.kana[k]))
+  const old = ROWS.slice(0, row).flatMap(r => [...r]).filter(k => isKata(k) === isKata(kana[0]) && solid(store.kana[k]))
 
   const next = (st = streak) => {
     setInput('')
@@ -107,7 +109,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
           {kana.map(k => (
             <div key={k} className="row-card" onClick={() => speak(k)}>
               <KanaPic k={k} size={150} />
-              <div className="reading">{read(k)}</div>
+              <div className="reading">{read(k)}{isKata(k) && <span className="twin"> = {toHira(k)}</span>}</div>
               {hook(k)}
             </div>
           ))}

@@ -1,4 +1,4 @@
-export const BASE: Record<string, string[]> = {
+const HIRA: Record<string, string[]> = {
   あ: ['a'], い: ['i'], う: ['u'], え: ['e'], お: ['o'],
   か: ['ka'], き: ['ki'], く: ['ku'], け: ['ke'], こ: ['ko'],
   さ: ['sa'], し: ['si', 'shi'], す: ['su'], せ: ['se'], そ: ['so'],
@@ -16,7 +16,7 @@ export const BASE: Record<string, string[]> = {
   ぱ: ['pa'], ぴ: ['pi'], ぷ: ['pu'], ぺ: ['pe'], ぽ: ['po'],
 }
 
-export const IPA: Record<string, string> = {
+const HIRA_IPA: Record<string, string> = {
   あ: 'a', い: 'i', う: 'ɯ', え: 'e', お: 'o',
   か: 'ka', き: 'kʲi', く: 'kɯ', け: 'ke', こ: 'ko',
   さ: 'sa', し: 'ɕi', す: 'sɯ', せ: 'se', そ: 'so',
@@ -34,6 +34,13 @@ export const IPA: Record<string, string> = {
   ぱ: 'pa', ぴ: 'pʲi', ぷ: 'pɯ', ぺ: 'pe', ぽ: 'po',
 }
 
+export const toKata = (s: string) => s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60))
+export const toHira = (s: string) => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
+export const isKata = (s: string) => /[ァ-ヶー]/.test(s)
+const withKata = <T,>(m: Record<string, T>) => ({ ...m, ...Object.fromEntries(Object.entries(m).map(([k, v]) => [toKata(k), v])) })
+export const BASE = withKata(HIRA)
+export const IPA = withKata(HIRA_IPA)
+
 export type Script = 'pl' | 'hep' | 'ipa'
 export const SCRIPTS: { id: Script; label: string }[] = [
   { id: 'pl', label: 'polski' },
@@ -41,7 +48,13 @@ export const SCRIPTS: { id: Script; label: string }[] = [
   { id: 'ipa', label: 'IPA' },
 ]
 
-const SMALL: Record<string, string> = { ゃ: 'a', ゅ: 'u', ょ: 'o' }
+const SMALL: Record<string, string> = withKata({ ゃ: 'a', ゅ: 'u', ょ: 'o' })
+const EXT: Record<string, [string[], string]> = {
+  ファ: [['fa'], 'ɸa'], フィ: [['fi'], 'ɸi'], フェ: [['fe'], 'ɸe'], フォ: [['fo'], 'ɸo'],
+  ティ: [['ti'], 'ti'], ディ: [['di'], 'di'], ウィ: [['łi', 'wi'], 'wi'], ウェ: [['łe', 'we'], 'we'], ウォ: [['ło', 'wo'], 'wo'],
+  シェ: [['sie', 'she', 'se'], 'ɕe'], チェ: [['cie', 'che'], 'tɕe'], ジェ: [['dzie', 'je'], 'dʑe'],
+}
+const SMALL_V = 'ァィゥェォ'
 const IPA_V: Record<string, string> = { a: 'a', u: 'ɯ', o: 'o' }
 
 function combo(base: string[], v: string): string[] {
@@ -67,18 +80,21 @@ export function tokenize(s: string, override?: Record<number, string[]>): Tok[] 
   let gem = false
   let space = false
   for (const ch of s) {
-    if (ch === 'っ') gem = true
+    if (ch === 'っ' || ch === 'ッ') gem = true
     else if (ch === ' ') space = true
-    else if (ch in SMALL && units.length) units[units.length - 1].kana += ch
+    else if ((ch in SMALL || SMALL_V.includes(ch)) && units.length) units[units.length - 1].kana += ch
     else { units.push({ kana: ch, gem, space }); gem = space = false }
   }
   const toks: Tok[] = units.map((u, i) => {
+    if (u.kana === 'ー') return { ...u, pl: '', hep: '', ipa: 'ː', readings: [] }
+    const ext = EXT[u.kana]
+    if (ext) return { ...u, pl: ext[0][0], hep: ext[0][1] ?? ext[0][0], ipa: ext[1], readings: ext[0] }
     const base = BASE[u.kana[0]]
     let rs = override?.[i] ?? (u.kana.length === 1 ? base : combo(base, SMALL[u.kana[1]]))
     if (!rs) throw new Error(`unknown kana ${u.kana} in ${s}`)
     let pl = rs[0]
     let hep = override?.[i]?.[1] ?? (u.kana.length === 1 ? (base[1] ?? base[0]) : hepCombo(base[1] ?? base[0], SMALL[u.kana[1]]))
-    const hepToKana = (h: string) => Object.keys(BASE).find(k => (BASE[k][1] ?? BASE[k][0]) === h)!
+    const hepToKana = (h: string) => Object.keys(HIRA).find(k => (HIRA[k][1] ?? HIRA[k][0]) === h)!
     let ipa = override?.[i] ? IPA[hepToKana(hep)] : u.kana.length === 1 ? IPA[u.kana] : IPA[u.kana[0]].slice(0, -1) + IPA_V[SMALL[u.kana[1]]]
     rs = [...new Set(rs)]
     if (u.gem) {
@@ -92,7 +108,12 @@ export function tokenize(s: string, override?: Record<number, string[]>): Tok[] 
   toks.forEach((t, i) => {
     const prev = toks[i - 1]?.pl ?? ''
     const next = toks[i + 1]?.pl ?? ''
-    if (t.kana === 'ん') {
+    if (t.kana === 'ー') {
+      const v = prev.slice(-1)
+      t.pl = t.hep = v
+      t.readings = [v, '']
+    }
+    if (t.kana === 'ん' || t.kana === 'ン') {
       t.readings = ['n', 'nn', ...(/^[pbm]/.test(next) ? ['m'] : [])]
       t.pl = /^[pbm]/.test(next) ? 'm' : /^[aeiouj]/.test(next) ? "n'" : 'n'
       const ni = toks[i + 1]?.ipa ?? ''
@@ -162,7 +183,7 @@ export function align(toks: Tok[], input: string): Seg[] {
 export function misread(tok: Tok, rest: string): string | null {
   let best: [string, number] | null = null
   for (const [k, rs] of Object.entries(BASE)) {
-    if (k === tok.kana) continue
+    if (k === tok.kana || isKata(k) !== isKata(tok.kana)) continue
     for (const r of rs) if (rest === r && (!best || r.length > best[1])) best = [k, r.length]
   }
   return best?.[0] ?? null
