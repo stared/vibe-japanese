@@ -5,7 +5,7 @@ import { useScript } from './script'
 import { Hook, KanaPic, pic } from './pics'
 import { kanaHistories, recentScore } from './history'
 import { fade, recent, weighted } from './recency'
-import { AnswerInput, speak } from './App'
+import { AnswerInput, HoverKana, speak } from './App'
 
 const HIRA_ROWS: string[] = [
   ...GRID.filter(r => r.c !== 'n' || r.cells[0] !== 'ん').map(r => r.cells.replace(/・/g, '') + (r.cells[0] === 'わ' ? 'ん' : '')),
@@ -52,6 +52,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
   const storeRef = useRef(store)
   storeRef.current = store
   const shownAt = useRef(0)
+  const hinted = useRef(false)
   const commit = (s: Store) => {
     storeRef.current = s
     setStore(s)
@@ -74,8 +75,10 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     const t = tokenize(k)
     const given = normalize(input)
     const ok = !!given && match(t, given).ok
-    commit(record(storeRef.current, k, t, ok ? [] : [0], Date.now(), { typed: input, kind: 'drill' }))
-    if (kana.includes(k)) setStreak(s => ({ ...s, [k]: ok ? (s[k] ?? 0) + 1 : 0 }))
+    const hint = hinted.current && ok
+    hinted.current = false
+    commit(record(storeRef.current, k, t, ok ? [] : [0], Date.now(), { typed: input, kind: 'drill', hint: hint ? [0] : [] }))
+    if (kana.includes(k)) setStreak(s => ({ ...s, [k]: ok ? (s[k] ?? 0) + (hint ? 0 : 1) : 0 }))
     shownAt.current = Date.now()
     setInput('')
     setStep({ kind: 'reveal', k, ok, typed: input, conf: ok || !given ? null : misread(t[0], given) })
@@ -138,7 +141,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     return (
       <main className="study">
         {progress}
-        <div className="word">{step.k}</div>
+        <div className="word"><HoverKana k={step.k} onHint={() => { hinted.current = true }} /></div>
         <AnswerInput value={input} onChange={setInput} onEnter={() => submit(step.k)} />
       </main>
     )

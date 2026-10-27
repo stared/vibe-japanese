@@ -251,7 +251,7 @@ export function AnswerInput({ value, onChange, onEnter, placeholder, shake }: { 
   )
 }
 
-function HoverKana({ k, onHint }: { k: string; onHint?: () => void }) {
+export function HoverKana({ k, onHint }: { k: string; onHint?: () => void }) {
   const [on, setOn] = useState(false)
   if (!pic(k)) return <>{k}</>
   return (
