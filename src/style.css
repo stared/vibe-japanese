@@ -127,6 +127,8 @@ header > nav + .gear { margin-left: auto; }
 .kana-pic .ptick { fill: none; stroke: #b5321f; stroke-width: .9; }
 .kana-pic .pcase { fill: #5d6b78; }
 .kana-pic .pasph { fill: #585e66; }
+.kana-pic .pgy { fill: #8c8c8c; } .kana-pic .pof { fill: #f07a1a; } .kana-pic .pred { fill: #c8302a; } .kana-pic .pskin { fill: #f4cfb4; }
+.kana-pic .pice { fill: #8cc4e6; } .kana-pic .pneon { fill: #ff4fa3; } .kana-pic .pcopper { fill: #c47a3a; } .kana-pic .pmeat { fill: #c08a5a; }
 .kana-pic .pst { fill: #9aa3ab; }
 .kana-pic .pthr { fill: #d23c6e; }
 .kana-pic .pgb { fill: color-mix(in oklab, #8a95a3 30%, var(--paper)); }
