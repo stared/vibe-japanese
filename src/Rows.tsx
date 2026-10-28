@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { GRID, GRID_VOICED, isKata, match, misread, normalize, toHira, toKata, tokenize } from './kana'
-import { record, logRetype, solid, type Store } from './srs'
+import { record, logRetype, type Store } from './srs'
 import { useScript } from './script'
 import { Hook, KanaPic, pic } from './pics'
 import { kanaHistories, recentScore } from './history'
@@ -58,7 +58,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     setStore(s)
   }
 
-  const old = ROWS.slice(0, row).flatMap(r => [...r]).filter(k => isKata(k) === isKata(kana[0]) && solid(store.kana[k]))
+  const old = ROWS.slice(0, row).flatMap(r => [...r]).filter(k => isKata(k) === isKata(kana[0]) && store.kana[k])
 
   const next = (st = streak) => {
     setInput('')
