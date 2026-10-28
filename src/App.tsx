@@ -3,7 +3,7 @@ import { BASE, align, match, misread, normalize, tokenize, type Script, type Seg
 import { ScriptCtx, loadScript, saveScript, useScript } from './script'
 import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, NEW_CHARS, toks, type Word } from './words'
-import { load, logRetype, newCard, record, save, solid, MIN, DAY, type Attempt, type Store } from './srs'
+import { load, logRetype, newCard, record, save, MIN, DAY, type Attempt, type Store } from './srs'
 import { Grid } from './Grid'
 import { WordList } from './WordList'
 import { Rows } from './Rows'

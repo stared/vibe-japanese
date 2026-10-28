@@ -3,8 +3,9 @@ import { GRID, GRID_VOICED, isKata, match, misread, normalize, toHira, toKata, t
 import { record, logRetype, type Store } from './srs'
 import { useScript } from './script'
 import { Hook, KanaPic, pic } from './pics'
-import { kanaHistories, recentScore } from './history'
+import { kanaHistories, pWrong } from './history'
 import { fade, recent, weighted } from './recency'
+import { heat } from './pick'
 import { AnswerInput, HoverKana, speak } from './App'
 
 const HIRA_ROWS: string[] = [
@@ -14,7 +15,7 @@ const HIRA_ROWS: string[] = [
 export const ROWS: string[] = [...HIRA_ROWS, ...HIRA_ROWS.map(toKata)]
 const GAPS = [GRID.length - 1, HIRA_ROWS.length, HIRA_ROWS.length + GRID.length - 1]
 const GOAL = 3
-const OLD_SHARE = 0.25
+const REVIEW = 0.3
 
 type Props = { store: Store; setStore: (s: Store) => void }
 
@@ -27,7 +28,7 @@ export function Rows({ store, setStore }: Props) {
       {ROWS.map((r, i) => (
         <button key={i} className={'row-pick' + (GAPS.includes(i) ? ' gap' : '')} onClick={() => setRow(i)}>
           {[...r].map(k => {
-            const score = store.kana[k] ? recentScore(hists.get(k) ?? []) : null
+            const score = store.kana[k] ? 1 - pWrong(hists.get(k) ?? []) : null
             return <span key={k} style={score === null ? undefined : { color: `color-mix(in oklab, var(--good) ${Math.round(score * 100)}%, var(--bad))` }}>{k}</span>
           })}
         </button>
@@ -66,8 +67,8 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     const open = kana.filter(k => (st[k] ?? 0) < GOAL)
     if (!open.length) return setStep({ kind: 'done' })
     const r = recent(storeRef.current.log)
-    const oldW = Math.min((open.length * OLD_SHARE) / (1 - OLD_SHARE) / old.length, 0.3)
-    const k = weighted([...kana, ...old], k => fade(r.kana.get(k)) * (open.includes(k) ? 1 : kana.includes(k) ? 0.3 : oldW)) ?? open[0]
+    const h = kanaHistories(storeRef.current.log)
+    const k = weighted([...kana, ...old], k => heat(pWrong(h.get(k) ?? [])) * fade(r.kana.get(k)) * (kana.includes(k) ? 1 : REVIEW)) ?? open[0]
     setStep({ kind: 'quiz', k })
   }
 

@@ -68,5 +68,3 @@ export function record(s: Store, id: string, toks: Tok[], wrong: number[], now: 
 
 export const logRetype = (s: Store, id: string, typed: string, ok: boolean, now: number): Store =>
   ({ ...s, log: [...s.log, { t: now, id, ok, typed, kind: 'retype' }] })
-
-export const solid = (st?: KStat) => !!st && st.n >= 6 && st.ema >= 0.85

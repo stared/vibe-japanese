@@ -28,14 +28,15 @@ export function kanaHistories(log: LogEntry[]): Map<string, boolean[]> {
   return m
 }
 
-export function recentScore(hist: boolean[], decay = 0.8): number | null {
-  if (!hist.length) return null
-  let num = 0, den = 0, w = 1
-  for (let i = hist.length - 1; i >= 0; i--, w *= decay) {
-    num += w * (hist[i] ? 1 : 0)
-    den += w
+export const G = 0.6
+
+export function pWrong(hist: boolean[]): number {
+  let miss = 0, n = 0, w = 1
+  for (let i = hist.length - 1; i >= 0; i--, w *= G) {
+    n += w
+    if (!hist[i]) miss += w
   }
-  return num / den
+  return (miss + 1) / (n + 2)
 }
 
 export function Dots({ hist, max = 30 }: { hist: boolean[]; max?: number }) {

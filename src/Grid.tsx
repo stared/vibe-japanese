@@ -4,7 +4,7 @@ import { ORIGIN, ORIGIN_MEANING, NOTE } from './kanaInfo'
 import { WORDS, toks } from './words'
 import type { Store } from './srs'
 import { useScript } from './script'
-import { Dots, kanaHistories, recentScore } from './history'
+import { Dots, kanaHistories, pWrong } from './history'
 import { Hook, KanaPic, pic } from './pics'
 
 const TABLES = [
@@ -23,7 +23,7 @@ export function Grid({ store }: { store: Store }) {
 
   const cell = (k: string, j: number) => {
     if (k === '・') return <td key={j} />
-    const score = seen.has(k) ? recentScore(hists.get(k) ?? []) : null
+    const score = seen.has(k) ? 1 - pWrong(hists.get(k) ?? []) : null
     const style = score === null ? undefined : { color: `color-mix(in oklab, var(--good) ${Math.round(score * 100)}%, var(--bad))` }
     return (
       <td key={j} style={style} className={(seen.has(k) ? 'known' : 'locked') + (sel === k ? ' sel' : '')}

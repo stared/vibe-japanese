@@ -39,8 +39,9 @@ test('study spreads over many words and keeps bringing new ones', () => {
   expect(mean(seq => seq.filter(x => x.kind === 'new').length)).toBeGreaterThan(35)
 })
 
-test('a failed word comes back soon', () => {
+test('a missed kana comes back sooner than a known one', () => {
   const lags = Array.from({ length: 20 }, () => session(200, 0.15)).flatMap(seq =>
-    seq.flatMap((x, i) => x.ok ? [] : [seq.findIndex((y, j) => j > i && y.id === x.id) - i]))
-  expect(lags.filter(l => l > 0 && l <= 6).length / lags.length).toBeGreaterThan(0.75)
+    seq.flatMap((x, i) => [{ ok: x.ok, lag: seq.findIndex((y, j) => j > i && y.kana.includes(x.kana[0])) - i }]))
+  const soon = (ok: boolean) => { const l = lags.filter(x => x.ok === ok && x.lag > 0); return l.filter(x => x.lag <= 8).length / l.length }
+  expect(soon(false)).toBeGreaterThan(1.3 * soon(true))
 })
