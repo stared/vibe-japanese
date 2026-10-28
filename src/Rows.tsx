@@ -5,7 +5,7 @@ import { useScript } from './script'
 import { Hook, KanaPic, pic } from './pics'
 import { kanaHistories, pWrong } from './history'
 import { fade, recent, weighted } from './recency'
-import { heat } from './pick'
+import { boltzmann } from './pick'
 import { AnswerInput, HoverKana, speak } from './App'
 
 const HIRA_ROWS: string[] = [
@@ -15,7 +15,7 @@ const HIRA_ROWS: string[] = [
 export const ROWS: string[] = [...HIRA_ROWS, ...HIRA_ROWS.map(toKata)]
 const GAPS = [GRID.length - 1, HIRA_ROWS.length, HIRA_ROWS.length + GRID.length - 1]
 const GOAL = 3
-const REVIEW = 0.2
+const ROW = 1
 
 type Props = { store: Store; setStore: (s: Store) => void }
 
@@ -68,7 +68,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     if (!open.length) return setStep({ kind: 'done' })
     const r = recent(storeRef.current.log)
     const h = kanaHistories(storeRef.current.log)
-    const k = weighted([...kana, ...old], k => heat(pWrong(h.get(k) ?? [])) * fade(r.kana.get(k)) * (kana.includes(k) ? 1 : REVIEW)) ?? open[0]
+    const k = weighted([...kana, ...old], k => boltzmann(Math.log(pWrong(h.get(k) ?? [])) + Math.log(fade(r.kana.get(k))) + (kana.includes(k) ? ROW : 0))) ?? open[0]
     setStep({ kind: 'quiz', k })
   }
 

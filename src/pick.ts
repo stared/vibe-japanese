@@ -9,9 +9,8 @@ export type Pick =
   | { kind: 'idle' }
 
 export const T = 0.3
-export const NEW = 1
 
-export const heat = (p: number) => p ** (1 / T)
+export const boltzmann = (score: number) => Math.exp(score / T)
 
 export function pick(s: Store, now: number): Pick {
   const hists = kanaHistories(s.log)
@@ -23,11 +22,11 @@ export function pick(s: Store, now: number): Pick {
   const items: Item[] = learned.map(w => ({
     word: w,
     kind: s.cards[w.kana].due <= now ? 'review' : 'drill',
-    x: heat(pWord(w)) * fade(Math.min(r.ids.get(w.kana) ?? Infinity, ...toks(w).map(t => r.kana.get(t.kana) ?? Infinity))),
+    x: boltzmann(Math.log(pWord(w)) + Math.log(fade(Math.min(r.ids.get(w.kana) ?? Infinity, ...toks(w).map(t => r.kana.get(t.kana) ?? Infinity))))),
   }))
   const next = WORDS.find(w => !s.cards[w.kana])
   const right = s.log.filter(e => e.kind !== 'retype').map(e => e.ok)
-  if (next) items.push({ word: next, kind: 'new', x: learned.length ? NEW * heat(1 - pWrong(right)) : 1 })
+  if (next) items.push({ word: next, kind: 'new', x: learned.length ? boltzmann(Math.log(1 - pWrong(right))) : 1 })
 
   const it = weighted(items, x => x.x)
   if (!it) return { kind: 'idle' }
