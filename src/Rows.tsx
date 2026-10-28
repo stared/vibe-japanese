@@ -66,7 +66,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     const open = kana.filter(k => (st[k] ?? 0) < GOAL)
     if (!open.length) return setStep({ kind: 'done' })
     const r = recent(storeRef.current.log)
-    const oldW = (open.length * OLD_SHARE) / (1 - OLD_SHARE) / old.length
+    const oldW = Math.min((open.length * OLD_SHARE) / (1 - OLD_SHARE) / old.length, 0.3)
     const k = weighted([...kana, ...old], k => fade(r.kana.get(k)) * (open.includes(k) ? 1 : kana.includes(k) ? 0.3 : oldW)) ?? open[0]
     setStep({ kind: 'quiz', k })
   }
