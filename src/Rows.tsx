@@ -15,7 +15,7 @@ const HIRA_ROWS: string[] = [
 export const ROWS: string[] = [...HIRA_ROWS, ...HIRA_ROWS.map(toKata)]
 const GAPS = [GRID.length - 1, HIRA_ROWS.length, HIRA_ROWS.length + GRID.length - 1]
 const GOAL = 3
-const REVIEW = 0.3
+const REVIEW = 0.2
 
 type Props = { store: Store; setStore: (s: Store) => void }
 
