@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { Mixup } from './Mixups'
 import { tokenize } from './kana'
 import { useScript } from './script'
 
 export type Pt = { x: number; y: number }
 const W = 640
-const L = 60
+const L = 64
 const R = 22
 const GAP = 24
 
@@ -76,34 +76,31 @@ type Props = { pairs: Mixup[]; color: (k: string) => string | undefined; onPick:
 
 export function MixupGraph({ pairs, color, onPick }: Props) {
   const sc = useScript()
-  const [hover, setHover] = useState<string | null>(null)
   const nodes = useMemo(() => [...new Set(pairs.flatMap(p => [p.a, p.b]))].sort(), [pairs])
   const { pos, h } = useMemo(() => layout(nodes, pairs), [nodes, pairs])
   if (!nodes.length) return null
   const wMax = Math.max(...pairs.map(p => p.w))
-  const near = (k: string) => hover === k || pairs.some(p => (p.a === hover && p.b === k) || (p.b === hover && p.a === k))
   return (
     <div className="mixup-graph">
       <svg viewBox={`0 0 ${W} ${h}`} width="100%">
         {pairs.map(p => {
           const a = pos.get(p.a)!, b = pos.get(p.b)!
-          const on = hover === p.a || hover === p.b
-          return <line key={p.a + p.b} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={'edge' + (on ? ' on' : hover ? ' dim' : '')} strokeWidth={1 + 5 * Math.sqrt(p.w / wMax)} />
+          return <line key={p.a + p.b} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className="edge" strokeWidth={1.5 + 2.5 * Math.sqrt(p.w / wMax)} />
         })}
-        {nodes.map(k => {
+        {nodes.map((k, i) => {
           const q = pos.get(k)!
           return (
-            <g key={k} className={'node' + (hover && !near(k) ? ' dim' : '')} transform={`translate(${q.x} ${q.y})`}
-              onMouseEnter={() => setHover(k)} onMouseLeave={() => setHover(null)} onClick={() => onPick(k)}>
+            <g key={k} className={`node n${i}`} transform={`translate(${q.x} ${q.y})`} onClick={() => onPick(k)}>
               <circle r={R} />
               <text style={{ fill: color(k) }}>{k}</text>
             </g>
           )
         })}
-        {hover && nodes.filter(near).map(k => {
+        {nodes.map((k, i) => {
           const q = pos.get(k)!
-          return <text key={k} className="roma" x={q.x} y={q.y + R + 12}>{tokenize(k)[0][sc]}</text>
+          return <text key={k} className={`roma r${i}`} x={q.x} y={q.y + R + 12}>{tokenize(k)[0][sc]}</text>
         })}
+        <style>{nodes.map((_, i) => `.mixup-graph:has(.n${i}:hover) .r${i}{visibility:visible}`).join('')}</style>
       </svg>
     </div>
   )

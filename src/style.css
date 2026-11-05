@@ -106,14 +106,12 @@ header > nav + .gear { margin-left: auto; }
 .row-pick.gap { margin-top: 24px; }
 .mixup-graph { position: relative; width: min(640px, 100%); margin-bottom: 16px; }
 .mixup-graph svg { display: block; overflow: visible; }
-.mixup-graph .edge { stroke: var(--faint); stroke-linecap: round; transition: opacity .15s; }
-.mixup-graph .edge.on { stroke: var(--muted); }
-.mixup-graph .dim { opacity: .25; }
-.mixup-graph .node { cursor: pointer; transition: opacity .15s; }
+.mixup-graph .edge { stroke: color-mix(in oklab, var(--faint) 70%, var(--muted)); stroke-linecap: round; }
+.mixup-graph .node { cursor: pointer; }
 .mixup-graph .node circle { fill: var(--paper); stroke: var(--faint); }
 .mixup-graph .node:hover circle { stroke: var(--ink); }
 .mixup-graph .node text { font: 22px var(--jp); fill: var(--muted); text-anchor: middle; dominant-baseline: central; }
-.mixup-graph .roma { font: 13px var(--mono); fill: var(--ink); text-anchor: middle; dominant-baseline: central; pointer-events: none;
+.mixup-graph .roma { font: 13px var(--mono); fill: var(--ink); text-anchor: middle; dominant-baseline: central; visibility: hidden; pointer-events: none;
   stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; paint-order: stroke; }
 .row-intro { display: flex; gap: 36px; }
 .row-card { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 150px; cursor: default; }
