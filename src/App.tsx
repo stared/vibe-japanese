@@ -7,11 +7,12 @@ import { load, logRetype, newCard, record, save, MIN, DAY, type Attempt, type St
 import { Grid } from './Grid'
 import { WordList } from './WordList'
 import { Rows } from './Rows'
+import { Mixups } from './Mixups'
 import { Settings } from './Settings'
 import { Hook, KanaPic, pic } from './pics'
 import { pick, type Pick } from './pick'
 
-type Tab = 'study' | 'rows' | 'grid' | 'words' | 'settings'
+type Tab = 'study' | 'rows' | 'mixups' | 'grid' | 'words' | 'settings'
 
 export default function App() {
   const [store, setStore] = useState<Store>(load)
@@ -33,7 +34,7 @@ export default function App() {
     <div className="app">
       <header>
         <nav>
-          {(['study', 'rows', 'grid', 'words'] as Tab[]).map(t => (
+          {(['study', 'rows', 'mixups', 'grid', 'words'] as Tab[]).map(t => (
             <button key={t} className={tab === t ? 'on' : ''} onClick={() => { setTab(t); setVisit(v => v + 1) }}>{t}</button>
           ))}
         </nav>
@@ -42,6 +43,7 @@ export default function App() {
       </header>
       {tab === 'study' && <Study store={store} setStore={setStore} now={now} />}
       {tab === 'rows' && <Rows key={visit} store={store} setStore={setStore} />}
+      {tab === 'mixups' && <Mixups key={visit} store={store} setStore={setStore} />}
       {tab === 'grid' && <Grid store={store} />}
       {tab === 'words' && <WordList store={store} />}
       {tab === 'settings' && <Settings store={store} onReplace={setStore} script={script} setScript={setScript} />}

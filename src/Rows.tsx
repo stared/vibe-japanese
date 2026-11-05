@@ -22,7 +22,11 @@ type Props = { store: Store; setStore: (s: Store) => void }
 export function Rows({ store, setStore }: Props) {
   const [row, setRow] = useState<number | null>(null)
   const hists = useMemo(() => kanaHistories(store.log), [store.log])
-  if (row !== null) return <RowSession key={row} row={row} store={store} setStore={setStore} onNext={() => setRow(row + 1 < ROWS.length ? row + 1 : null)} />
+  if (row !== null) {
+    const kana = [...ROWS[row]]
+    const old = ROWS.slice(0, row).flatMap(r => [...r]).filter(k => isKata(k) === isKata(kana[0]) && store.kana[k])
+    return <RowSession key={row} kana={kana} old={old} hasNext={row + 1 < ROWS.length} store={store} setStore={setStore} onNext={() => setRow(row + 1 < ROWS.length ? row + 1 : null)} />
+  }
   return (
     <main className="rows-page">
       {ROWS.map((r, i) => (
@@ -43,9 +47,8 @@ type Step =
   | { kind: 'reveal'; k: string; ok: boolean; typed: string; conf: string | null; fixed?: boolean }
   | { kind: 'done' }
 
-function RowSession({ row, store, setStore, onNext }: Props & { row: number; onNext: () => void }) {
+export function RowSession({ kana, old, hasNext, store, setStore, onNext, bonus = ROW }: Props & { kana: string[]; old: string[]; hasNext: boolean; onNext: () => void; bonus?: number }) {
   const sc = useScript()
-  const kana = [...ROWS[row]]
   const [step, setStep] = useState<Step>({ kind: 'intro' })
   const [streak, setStreak] = useState<Record<string, number>>({})
   const [input, setInput] = useState('')
@@ -59,8 +62,6 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     setStore(s)
   }
 
-  const old = ROWS.slice(0, row).flatMap(r => [...r]).filter(k => isKata(k) === isKata(kana[0]) && store.kana[k])
-
   const next = (st = streak) => {
     setInput('')
     setShake(0)
@@ -68,7 +69,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     if (!open.length) return setStep({ kind: 'done' })
     const r = recent(storeRef.current.log)
     const h = kanaHistories(storeRef.current.log)
-    const k = weighted([...kana, ...old], k => boltzmann(Math.log(pWrong(h.get(k) ?? [])) + Math.log(fade(r.kana.get(k))) + (kana.includes(k) ? ROW : 0))) ?? open[0]
+    const k = weighted([...kana, ...old], k => boltzmann(Math.log(pWrong(h.get(k) ?? [])) + Math.log(fade(r.kana.get(k))) + (kana.includes(k) ? bonus : 0))) ?? open[0]
     setStep({ kind: 'quiz', k })
   }
 
@@ -127,7 +128,7 @@ function RowSession({ row, store, setStore, onNext }: Props & { row: number; onN
     return (
       <main className="study">
         <div className="word good">{kana.join('')}</div>
-        {row + 1 < ROWS.length && <button className="next" onClick={onNext}>next row</button>}
+        {hasNext && <button className="next" onClick={onNext}>next row</button>}
       </main>
     )
   }
