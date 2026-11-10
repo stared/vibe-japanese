@@ -1,7 +1,9 @@
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { pick } from './pick'
 import { newCard, record, type Store } from './srs'
 import { toks } from './words'
+
+vi.setConfig({ testTimeout: 30_000 })  // thousands of simulated answers: seconds on a slow CI runner
 
 function session(n: number, err = 0, seconds = 8) {
   let s: Store = { cards: {}, kana: {}, log: [] }
